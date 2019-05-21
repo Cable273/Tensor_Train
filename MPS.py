@@ -47,21 +47,27 @@ class mps:
         print("Left normalizing MPS")
         for n in pbar(range(0,self.length-1)):
             self.node[n].tensor,self.node[n+1].tensor = svd_node_pair.left(self.node[n],self.node[n+1])
-        self.node[self.length-1].tensor = svd_norm_node(self.node[self.length-1],norm_dir="left")
+        self.node[self.length-1].tensor = svd_norm_node.left(self.node[self.length-1])
 
     def right_normalize(self):
         pbar=ProgressBar()
         print("Right normalizing MPS")
         for n in pbar(range(self.length-1,0,-1)):
             self.node[n-1].tensor,self.node[n].tensor = svd_node_pair.right(self.node[n-1],self.node[n])
-        self.node[0].tensor = svd_norm_node(self.node[0],norm_dir="right")
+        self.node[0].tensor = svd_norm_node.right(self.node[0])
 
     def mixed_normalize(self,site):
-        for n in range(0,site):
+        print("Mixed normalizing MPS")
+        print("Left norm:")
+        pbar=ProgressBar()
+        for n in pbar(range(0,self.length-1)):
             self.node[n].tensor,self.node[n+1].tensor = svd_node_pair.left(self.node[n],self.node[n+1])
-        for n in range(self.length-1,site,-1):
+        # self.node[self.length-1].tensor = svd_norm_node.left(self.node[self.length-1])
+        print("Right norm:")
+        pbar=ProgressBar()
+        for n in pbar(range(self.length-1,site,-1)):
             self.node[n-1].tensor,self.node[n].tensor = svd_node_pair.right(self.node[n-1],self.node[n])
-        self.node[site].tensor = svd_norm_node(self.node[site])
+        # self.node[site].tensor = svd_norm_node(self.node[site])
 
 class mpo:
     def uniform(length,Q,V=None,W=None):
@@ -80,7 +86,6 @@ class mpo:
                 return periodic_MPO(length,O)
             elif bc == "open":
                 return open_MPO(length,O,V,W)
-        self.left_normalize(self)
 
     def set_entry(self,site,tensor):
         self.node[site] = tensor
@@ -197,14 +202,4 @@ class open_MPO(mpo):
             for n in range(1,self.length-1):
                 self.node[n] = rail_node(Q,legs="both")
             self.node[self.length-1] = rail_node(W,legs="left")
-
-class compress_MPS:
-    def svd(psi,D):
-        if type(psi) is open_MPS:
-            psi.left_normalize()
-            pbar=ProgressBar()
-            print("Compressing MPS")
-            for n in pbar(range(psi.length-1,0,-1)):
-                psi.node[n-1].tensor,psi.node[n].tensor = svd_node_pair.right(psi.node[n-1],psi.node[n],D_cap=D)
-            psi.node[0].tensor = svd_norm_node(psi.node[0])
 
