@@ -4,14 +4,10 @@ import numpy as np
 from Tensor_Train import *
 from progressbar import ProgressBar
 from svd_operations import svd_node_pair,svd_norm_node
-class MPS:
+class mps:
     def uniform(length,A,V=None,W=None):
         if V is None and W is None: return periodic_MPS(length,A)
         else: return open_MPS(length,A,V,W)
-
-    def set_entry(site,T,legs):
-        MPS.node[site].tensor = T
-        MPS.node[site].legs = T
 
     def random(length,on_site_dim,bond_dim,boundary=None):
         A = np.random.uniform(-2,2,np.array((on_site_dim,bond_dim,bond_dim)))
@@ -67,27 +63,23 @@ class MPS:
             self.node[n-1].tensor,self.node[n].tensor = svd_node_pair.right(self.node[n-1],self.node[n])
         self.node[site].tensor = svd_norm_node(self.node[site])
 
-class MPO:
-    def __init__(self,length):
-        self.length = length
-        self.node = dict()
-
+class mpo:
     def uniform(length,Q,V=None,W=None):
-        if V is None and W is None: return periodic_MPO(length,O)
+        if V is None and W is None: return periodic_MPO(length,Q)
         else: return open_MPO(length,Q,V,W)
 
     def random(length,on_site_dim,bond_dim,boundary=None):
         O = np.random.uniform(-1,1,np.array((on_site_dim,on_site_dim,bond_dim,bond_dim)))
         V = np.random.uniform(-1,1,np.array((on_site_dim,on_site_dim,bond_dim)))
         W = np.random.uniform(-1,1,np.array((on_site_dim,on_site_dim,bond_dim)))
-        if boundary == "periodic": return periodic_MPS(length,O)
-        elif boundary == "open": return open_MPS(length,O,V,W)
+        if boundary == "periodic": return periodic_MPO(length,O)
+        elif boundary == "open": return open_MPO(length,O,V,W)
         else: #choose open/periodic randomly
             bc = np.random.choice(['periodic','open'])
             if bc == "periodic":
-                return periodic_MPS(length,O)
+                return periodic_MPO(length,O)
             elif bc == "open":
-                return open_MPS(length,O,V,W)
+                return open_MPO(length,O,V,W)
         self.left_normalize(self)
 
     def set_entry(self,site,tensor):
@@ -105,7 +97,6 @@ class MPO:
         else:
             self.node[site].legs = "left"
 
-
     def exp(self,psi1,psi2=None):
         if psi2 is None:
             network = rail_network(psi1,psi1,self)
@@ -122,7 +113,7 @@ class MPO:
             psi.node[n] = collapsed_MPO_layer.factory(layer(network,n))
         return psi
 
-class periodic_MPS(MPS):
+class periodic_MPS(mps):
     def __init__(self,length,A=None):
         self.length = length
         self.node = dict()
@@ -142,7 +133,7 @@ class periodic_MPS(MPS):
             new_MPS.node[n] = rail_node(M,"both")
         return new_MPS
     
-class open_MPS(MPS):
+class open_MPS(mps):
     def __init__(self,length,A=None,V=None,W=None):
         self.length = length
         self.node = dict()
@@ -184,16 +175,18 @@ class open_MPS(MPS):
         new_MPS.node[self.length-1] = rail_node(M,"left")
         return new_MPS
 
-class periodic_MPO(MPO):
+class periodic_MPO(mpo):
     def __init__(self,length,Q=None):
-        super().__init__(length)
+        self.length = length
+        self.node = dict()
         if Q is not None:
             for n in range(0,self.length):
                 self.node[n] = rail_node(Q,legs="both")
 
-class open_MPO(MPO):
+class open_MPO(mpo):
     def __init__(self,length,Q=None,V=None,W=None):
-        super().__init__(length)
+        self.length = length
+        self.node = dict()
         if Q is not None:
             #reshape so legs corrspond to: up down left right
             Q=np.einsum('ijkl->klij',Q)
@@ -214,3 +207,4 @@ class compress_MPS:
             for n in pbar(range(psi.length-1,0,-1)):
                 psi.node[n-1].tensor,psi.node[n].tensor = svd_node_pair.right(psi.node[n-1],psi.node[n],D_cap=D)
             psi.node[0].tensor = svd_norm_node(psi.node[0])
+
