@@ -13,8 +13,6 @@ class svd_node_pair:
                 A = A[:,0:D_cap]
                 S = S[0:D_cap]
                 Vh = Vh[0:D_cap,:]
-            #rescale S
-            S = S / np.max(S)
             new_left_node = A.reshape((shape[0],shape[1],np.size(S)))
             new_right_node = np.einsum('ij,jk,ukl->uil',np.diag(S),Vh,node2.tensor)
             return new_left_node, new_right_node
@@ -28,7 +26,6 @@ class svd_node_pair:
                 A = A[:,0:D_cap]
                 S = S[0:D_cap]
                 Vh = Vh[0:D_cap,:]
-            S = S / np.max(S)
             A = A.reshape((shape[0],shape[1],np.size(S)))
             M = np.einsum('ij,jk,uk->ui',np.diag(S),Vh,node2.tensor)
             return A,M
@@ -50,7 +47,6 @@ class svd_node_pair:
             reshaped_node = np.reshape(np.einsum('ijk->jki',node2.tensor),np.array((shape[1],shape[0]*shape[2])))
 
             U,S,B = np.linalg.svd(reshaped_node,full_matrices=False)
-            S = S / np.max(S)
             if D_cap is not None:
                 U = U[:,0:D_cap]
                 S = S[0:D_cap]
@@ -65,7 +61,6 @@ class svd_node_pair:
             reshaped_node = node2.tensor.transpose()
 
             U,S,B = np.linalg.svd(reshaped_node,full_matrices=False)
-            S = S / np.max(S)
             if D_cap is not None:
                 U = U[:,0:D_cap]
                 S = S[0:D_cap]
@@ -79,7 +74,6 @@ class svd_node_pair:
             reshaped_node = np.reshape(np.einsum('ijk->jki',node2.tensor),np.array((shape[1],shape[0]*shape[2])))
 
             U,S,B = np.linalg.svd(reshaped_node,full_matrices=False)
-            S = S / np.max(S)
             if D_cap is not None:
                 U = U[:,0:D_cap]
                 S = S[0:D_cap]
