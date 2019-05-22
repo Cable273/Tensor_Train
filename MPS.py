@@ -42,19 +42,21 @@ class mps:
         network.contract()
         return network.contraction
     
-    def left_normalize(self):
+    def left_normalize(self,norm=False):
         pbar=ProgressBar()
         print("Left normalizing MPS")
         for n in pbar(range(0,self.length-1)):
             self.node[n].tensor,self.node[n+1].tensor = svd_node_pair.left(self.node[n],self.node[n+1])
-        self.node[self.length-1].tensor = svd_norm_node.left(self.node[self.length-1])
+        if norm is True:
+            self.node[self.length-1].tensor = svd_norm_node.left(self.node[self.length-1])
 
-    def right_normalize(self):
+    def right_normalize(self,norm=False):
         pbar=ProgressBar()
         print("Right normalizing MPS")
         for n in pbar(range(self.length-1,0,-1)):
             self.node[n-1].tensor,self.node[n].tensor = svd_node_pair.right(self.node[n-1],self.node[n])
-        self.node[0].tensor = svd_norm_node.right(self.node[0])
+        if norm is True:
+            self.node[0].tensor = svd_norm_node.right(self.node[0])
 
     def mixed_normalize(self,site):
         print("Mixed normalizing MPS")
@@ -112,9 +114,8 @@ class mpo:
 
     def act_on(self,psi):
         network = rail_network(psi,Q=self)
-        print("MPO|MPS>...")
         pbar=ProgressBar()
-        for n in pbar(range(0,psi.length)):
+        for n in range(0,psi.length):
             psi.node[n] = collapsed_MPO_layer.factory(layer(network,n))
         return psi
 
@@ -202,4 +203,3 @@ class open_MPO(mpo):
             for n in range(1,self.length-1):
                 self.node[n] = rail_node(Q,legs="both")
             self.node[self.length-1] = rail_node(W,legs="left")
-
