@@ -177,3 +177,52 @@ class combine_mpoNode_clayers:
             H_tensor = H_tensor.rehsape(np.array((shape[0]*shape[1]*shape[2],shape[3]*shape[4]*shape[5])))
             return H_tensor
 
+class combine_mpo_nodes_vertical:
+    def factory(node1,node2):
+        if node1.legs == "both" and node2.legs == "both":
+            mpo_tensor =  np.einsum('ijab,jkcd->ikacbd',node1.tensor,node2.tensor)
+            shape = np.shape(mpo_tensor)
+            mpo_tensor =  mpo_tensor.reshape(np.array((shape[0],shape[1],shape[2]*shape[3],shape[4]*shape[5])))
+            return rail_node(mpo_tensor,"both")
+        if node1.legs == "both" and node2.legs == "left":
+            mpo_tensor =  np.einsum('ijab,jkc->ikacb',node1,tensor,node2.tensor)
+            shape = np.shape(mpo_tensor)
+            mpo_tensor =  mpo_tensor.reshape(np.array((shape[0],shape[1],shape[2]*shape[3],shape[4])))
+            return rail_node(mpo_tensor,"both")
+        if node1.legs == "both" and node2.legs == "right":
+            mpo_tensor =  np.einsum('ijab,jkc->ikabc',node1.tensor,node2.tensor)
+            shape = np.shape(mpo_tensor)
+            mpo_tensor =  mpo_tensor.reshape(np.array((shape[0],shape[1],shape[2],shape[3]*shape[4])))
+            return rail_node(mpo_tensor,"both")
+
+        if node1.legs == "right" and node2.legs == "both":
+            mpo_tensor =  np.einsum('ija,jkbc->ikbac',node1.tensor,node2.tensor)
+            shape = np.shape(mpo_tensor)
+            mpo_tensor =  mpo_tensor.reshape(np.array((shape[0],shape[1],shape[2],shape[3]*shape[4])))
+            return rail_node(mpo_tensor,"both")
+        if node1.legs == "right" and node2.legs == "left":
+            mpo_tensor =  np.einsum('ijb,jka->ikab',node1.tensor,node2.tensor)
+            shape = np.shape(mpo_tensor)
+            mpo_tensor =  mpo_tensor.reshape(np.array((shape[0],shape[1],shape[2],shape[3])))
+            return rail_node(mpo_tensor,"both")
+        if node1.legs == "right" and node2.legs == "right":
+            mpo_tensor =  np.einsum('ija,jkb->ikab',node1.tensor,node2.tensor)
+            shape = np.shape(mpo_tensor)
+            mpo_tensor =  mpo_tensor.reshape(np.array((shape[0],shape[1],shape[2]*shape[3])))
+            return rail_node(mpo_tensor,"right")
+
+        if node1.legs == "left" and node2.legs == "both":
+            mpo_tensor =  np.einsum('ija,jkbc->ikabc',node1.tensor,node2.tensor)
+            shape = np.shape(mpo_tensor)
+            mpo_tensor =  mpo_tensor.reshape(np.array((shape[0],shape[1],shape[2]*shape[3],shape[4])))
+            return rail_node(mpo_tensor,"both")
+        if node1.legs == "left" and node2.legs == "left":
+            mpo_tensor =  np.einsum('ija,jkb->ikab',node1.tensor,node2.tensor)
+            shape = np.shape(mpo_tensor)
+            mpo_tensor =  mpo_tensor.reshape(np.array((shape[0],shape[1],shape[2]*shape[3])))
+            return rail_node(mpo_tensor,"left")
+        if node1.legs == "left" and node2.legs == "right":
+            mpo_tensor =  np.einsum('ika,kjb->ijab',node1.tensor,node2.tensor)
+            shape = np.shape(mpo_tensor)
+            mpo_tensor =  mpo_tensor.reshape(np.array((shape[0],shape[1],shape[2],shape[3])))
+            return rail_node(mpo_tensor,"both")
