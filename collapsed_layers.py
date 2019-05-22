@@ -10,7 +10,7 @@ class collapsed_layer:
     def factory(layer):
         #three three
         if layer.top_legs == "both" and layer.bot_legs == "both" and layer.mid_legs == "both":
-            tensor = np.einsum('ijk,iuab,unm->jankbm',layer.top,layer.mid,layer.bot)
+            tensor = np.einsum('iaj,iubk,ucn->abcjkn',layer.top,layer.mid,layer.bot)
             return three_three(tensor)
 
         #three two
@@ -266,7 +266,7 @@ class collapsed_layer:
 class collapsed_MPO_layer:
     def factory(layer):
         if layer.top_legs == "both" and layer.mid_legs == "both" and layer.bot is None:
-            N = np.einsum('ijk,iuab->ujakb',layer.top,layer.mid)
+            N = np.einsum('iac,ijbd->jabcd',layer.top,layer.mid)
             shape = np.shape(N)
             N = N.reshape(np.array((shape[0],shape[1]*shape[2],shape[3]*shape[4])))
             return rail_node(N,"both")
@@ -286,7 +286,7 @@ class collapsed_MPO_layer:
             N = N.reshape(np.array((shape[0],shape[1]*shape[2],shape[3])))
             return rail_node(N,"both")
         elif layer.top_legs == "right" and layer.mid_legs == "left" and layer.bot is None:
-            N = np.einsum('ij,iuk->kj',layer.top,layer.mid)
+            N = np.einsum('ia,ijk->jka',layer.top,layer.mid)
             shape = np.shape(N)
             N = N.reshape(np.array((shape[0],shape[1],shape[2])))
             return rail_node(N,"both")
@@ -302,7 +302,7 @@ class collapsed_MPO_layer:
             return rail_node(N,"both")
 
         elif layer.top_legs == "right" and layer.mid_legs == "right" and layer.bot is None:
-            N = np.einsum('ia,ijk->jak',layer.top,layer.mid)
+            N = np.einsum('ia,ijb->jab',layer.top,layer.mid)
             shape = np.shape(N)
             N = N.reshape(np.array((shape[0],shape[1]*shape[2])))
             return rail_node(N,"right")
@@ -311,6 +311,9 @@ class collapsed_MPO_layer:
             shape = np.shape(N)
             N = N.reshape(np.array((shape[0],shape[1]*shape[2])))
             return rail_node(N,"left")
+
+        elif layer.mid is None:
+            return rail_node(layer.top,layer.top_legs)
 
 class three_three(collapsed_layer):
     def __init__(self,tensor):
