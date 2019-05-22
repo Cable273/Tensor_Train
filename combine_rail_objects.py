@@ -10,7 +10,7 @@ class combine_collapsed_layers:
         if type(clayer1) is three_three and type(clayer2) is three_two:
             return three_two(np.einsum('ijkunm,unmab->ijkab',clayer1.tensor,clayer2.tensor))
         if type(clayer1) is three_three and type(clayer2) is three_one:
-            return three_one(np.einsum('ijkunm,unma->ijka',clayer1.tensor,clayer2.tensor))
+            return three_one(np.einsum('ijkabc,abcu->ijku',clayer1.tensor,clayer2.tensor))
         if type(clayer1) is three_three and type(clayer2) is three_zero:
             return three_zero(np.einsum('ijkunm,unm->ijk',clayer1.tensor,clayer2.tensor))
 
@@ -149,3 +149,31 @@ class combine_collapsed_layers:
             return np.einsum('ab,ab',clayer1.tensor,clayer2.tensor)
         if type(clayer1) is zero_one and type(clayer2) is one_zero:
             return np.einsum('i,i',clayer1.tensor,clayer2.tensor)
+
+class combine_mpoNode_clayers:
+    def factory(mpo_node,clayer1,clayer2=None):
+        if clayer2 is None:
+            if mpo_node.legs=="left": 
+                H_tensor = np.einsum('iuk,jka->ijua',mpo_node.tensor,clayer1.tensor)
+                shape = np.shape(H_tensor)
+                H_tensor = H_tensor.reshape(np.array((shape[0]*shape[1],shape[2]*shape[3])))
+                return H_tensor
+
+            elif mpo_node.legs=="right":
+                H_tensor = np.einsum('iub,abc->iauc',mpo_node.tensor,clayer1.tensor)
+                shape = np.shape(H_tensor)
+                H_tensor = H_tensor.reshape(np.array((shape[0]*shape[1],shape[2]*shape[3])))
+                return H_tensor
+
+        elif type(clayer1) is zero_three and type(clayer2) is three_zero and mpo_node.legs=="both":
+            H_tensor =  np.einsum('abc,ijbk,ukn->iaujcn',clayer1.tensor,mpo_node.tensor,clayer2.tensor)
+            shape = np.shape(H_tensor)
+            H_tensor = H_tensor.reshape(np.array((shape[0]*shape[1]*shape[2],shape[3]*shape[4]*shape[5])))
+            return H_tensor
+
+        elif type(clayer1) is three_three and type(clayer2) is three_three and mpo_node.legs=="both":
+            H_tensor = np.einsum('abcdef,ijeh,ghzklm->idgjfz',clayer1.tensor,mpo_node.tensor,clayer2.tensor)
+            shape = np.shape(H_tensor)
+            H_tensor = H_tensor.rehsape(np.array((shape[0]*shape[1]*shape[2],shape[3]*shape[4]*shape[5])))
+            return H_tensor
+
