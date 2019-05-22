@@ -3,8 +3,8 @@
 import numpy as np
 from MPS import *
 class common_mpo:
-    def  Heis(length,J,h,boundary):
-        #Heisenberg MPO
+    def  Ising(length,J,h,boundary):
+        #J*ZZ-hX
         Z=np.array([[1,0,0],[0,1,0],[0,0,-1]])
         I=np.array([[1,0,0],[0,1,0],[0,0,1]])
         X=np.array([[0,np.power(2,0.5),0],[np.power(2,0.5),0,np.power(2,0.5)],[0,np.power(2,0.5),0]])
