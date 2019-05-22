@@ -9,7 +9,7 @@ from MPS import *
 import scipy.linalg as linalg
 import copy
 class dmrg:
-    def __init__(self,H,D=None,psi=None):
+    def __init__(self,H,D,psi=None):
         self.psi = copy.deepcopy(psi)
         self.H = H
         self.D = D
@@ -57,8 +57,8 @@ class dmrg:
         site_H_mpo = combine_mpoNode_clayers.factory(self.network.mid_row.node[0],self.R[1])
 
         #solve via...
-        shape = np.shape(self.network.top_row.node[0].tensor)
-        M0 = self.network.top_row.node[0].tensor.reshape(np.array((shape[0]*shape[1])))
+        # shape = np.shape(self.network.top_row.node[0].tensor)
+        # M0 = self.network.top_row.node[0].tensor.reshape(np.array((shape[0]*shape[1])))
         e,u = linalg.eigh(site_H_mpo)
         M = u[:,0]
         M = M.reshape(np.shape(self.network.top_row.node[0].tensor))
@@ -74,8 +74,8 @@ class dmrg:
             site_H_mpo = combine_mpoNode_clayers.factory(self.network.mid_row.node[n],self.L[n-1],self.R[n+1])
 
             # solve via...
-            shape = np.shape(self.network.top_row.node[n].tensor)
-            M0 = self.network.top_row.node[n].tensor.reshape(np.array((shape[0]*shape[1]*shape[2])))
+            # shape = np.shape(self.network.top_row.node[n].tensor)
+            # M0 = self.network.top_row.node[n].tensor.reshape(np.array((shape[0]*shape[1]*shape[2])))
             e,u = linalg.eigh(site_H_mpo)
             M = u[:,0]
             shape_A=np.shape(self.network.top_row.node[n].tensor)
@@ -109,8 +109,8 @@ class dmrg:
         site_H_mpo = combine_mpoNode_clayers.factory(self.network.mid_row.node[self.length-1],self.L[self.length-2])
 
         #solve via...
-        shape = np.shape(self.network.top_row.node[self.length-1].tensor)
-        M0 = self.network.top_row.node[self.length-1].tensor.reshape(np.array((shape[0]*shape[1])))
+        # shape = np.shape(self.network.top_row.node[self.length-1].tensor)
+        # M0 = self.network.top_row.node[self.length-1].tensor.reshape(np.array((shape[0]*shape[1])))
         e,u = linalg.eigh(site_H_mpo)
         M = u[:,0]
         M = M.reshape(np.shape(self.network.top_row.node[self.length-1].tensor))
@@ -126,8 +126,8 @@ class dmrg:
             site_H_mpo = combine_mpoNode_clayers.factory(self.network.mid_row.node[n],self.L[n-1],self.R[n+1])
 
             # solve via...
-            shape = np.shape(self.network.top_row.node[n].tensor)
-            M0 = self.network.top_row.node[n].tensor.reshape(np.array((shape[0]*shape[1]*shape[2])))
+            # shape = np.shape(self.network.top_row.node[n].tensor)
+            # M0 = self.network.top_row.node[n].tensor.reshape(np.array((shape[0]*shape[1]*shape[2])))
             e,u = linalg.eigh(site_H_mpo)
             M = u[:,0]
             shape_A=np.shape(self.network.top_row.node[n].tensor)
