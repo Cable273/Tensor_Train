@@ -6,7 +6,7 @@ from progressbar import ProgressBar,FormatLabel,BouncingBar,ReverseBar,Bar,Anima
 from svd_operations import svd_node_pair,svd_norm_node
 from compression import svd_compress,var_compress
 from MPS import *
-import scipy.linalg as linalg
+import scipy.sparse.linalg as linalg
 import copy
 class dmrg:
     def __init__(self,H,D,psi=None):
@@ -59,7 +59,8 @@ class dmrg:
         #solve via...
         # shape = np.shape(self.network.top_row.node[0].tensor)
         # M0 = self.network.top_row.node[0].tensor.reshape(np.array((shape[0]*shape[1])))
-        e,u = linalg.eigh(site_H_mpo)
+        # e,u = linalg.eigsh(site_H_mpo,1,v0=M0,which='LM')
+        e,u = sp.linalg.eigh(site_H_mpo)
         M = u[:,0]
         M = M.reshape(np.shape(self.network.top_row.node[0].tensor))
 
@@ -76,7 +77,8 @@ class dmrg:
             # solve via...
             # shape = np.shape(self.network.top_row.node[n].tensor)
             # M0 = self.network.top_row.node[n].tensor.reshape(np.array((shape[0]*shape[1]*shape[2])))
-            e,u = linalg.eigh(site_H_mpo)
+            # e,u = linalg.eigsh(site_H_mpo,1,v0=M0,which='LM')
+            e,u = sp.linalg.eigh(site_H_mpo)
             M = u[:,0]
             shape_A=np.shape(self.network.top_row.node[n].tensor)
             new_phys_dim = int(np.size(M)/(shape_A[1]*shape_A[2]))
@@ -111,7 +113,8 @@ class dmrg:
         #solve via...
         # shape = np.shape(self.network.top_row.node[self.length-1].tensor)
         # M0 = self.network.top_row.node[self.length-1].tensor.reshape(np.array((shape[0]*shape[1])))
-        e,u = linalg.eigh(site_H_mpo)
+        # e,u = linalg.eigsh(site_H_mpo,1,v0=M0,which='LM')
+        e,u = sp.linalg.eigh(site_H_mpo)
         M = u[:,0]
         M = M.reshape(np.shape(self.network.top_row.node[self.length-1].tensor))
 
@@ -128,7 +131,8 @@ class dmrg:
             # solve via...
             # shape = np.shape(self.network.top_row.node[n].tensor)
             # M0 = self.network.top_row.node[n].tensor.reshape(np.array((shape[0]*shape[1]*shape[2])))
-            e,u = linalg.eigh(site_H_mpo)
+            # e,u = linalg.eigsh(site_H_mpo,1,v0=M0,which='LM')
+            e,u = sp.linalg.eigh(site_H_mpo)
             M = u[:,0]
             shape_A=np.shape(self.network.top_row.node[n].tensor)
             new_phys_dim = int(np.size(M)/(shape_A[1]*shape_A[2]))

@@ -4,7 +4,7 @@ import numpy as np
 from MPS import mpo,mps
 from Tensor_Train import rail_network
 
-N=100
+N=400
 dim = 3
 A=np.zeros(np.array((dim,2,2)))
 A[0] = [[0,np.power(2/3,0.5)],[0,0]]
@@ -24,19 +24,19 @@ B[2] = [0,5]
 from common_MPOs import common_mpo
 from compression import var_compress,svd_compress
 import matplotlib.pyplot as plt
-D=2
-H = common_mpo.Heis(N,"open")
-# psi = mps.uniform(N,A,B,B)
-psi = mps.uniform(N,A,B,B)
-# psi = mps.random(N,3,2,boundary="periodic")
-psi.left_normalize()
-H.act_on(psi)
-H.act_on(psi)
-psi.left_normalize()
-# psi_trial = svd_compress(psi,D).compress()
-# compressor = var_compress(psi,D,psi_trial=psi_trial)
-compressor = var_compress(psi,D)
-psi = compressor.compress(1e-5)
-plt.plot(compressor.distance)
-plt.show()
-    
+from DMRG import dmrg
+D=4
+H = common_mpo.Ising(N,1,2,"open")
+# H = common_mpo.Heis(N,1,"open")
+# psi = mps.random(N,2,D,boundary="open")
+# psi.left_normalize(norm=True)
+# print(np.shape(H.node[1].tensor))
+# H2 = H.dot(H)
+# print(np.shape(H2.node[1].tensor))
+# print(psi.dot(psi))
+
+method = dmrg(H,D)
+psi = method.run()
+print(psi.dot(psi))
+# method.plot_convergence()
+# method.plot_var()

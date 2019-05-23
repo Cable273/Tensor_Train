@@ -7,8 +7,8 @@ from common_MPOs import common_mpo
 from compression import var_compress,svd_compress
 import matplotlib.pyplot as plt
 from DMRG import dmrg
-D=2
-N=1000
+N=147
+D=4
 H = common_mpo.PXP(N,"open")
 method = dmrg(H,D)
-method.run()
+psi = method.run()
