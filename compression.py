@@ -24,6 +24,7 @@ def diff_norm_mixed_mps(psi,site,norm):
 class svd_compress:
     def __init__(self,psi,D):
         self.psi = copy.deepcopy(psi)
+        self.orig_norm = self.psi.dot(self.psi)
         self.psi_orig = copy.deepcopy(psi)
         self.length = psi.length
         self.D = D
@@ -42,7 +43,7 @@ class svd_compress:
         cross_network = rail_network(self.psi_orig.conj(),self.psi)
         cross_network.contract()
         cross_term = cross_network.contraction
-        self.error = np.abs(self.psi_orig.dot(self.psi_orig) - cross_term + np.conj(cross_term) + self.psi.dot(self.psi))**2
+        self.error = np.abs(self.orig_norm - cross_term + np.conj(cross_term) + self.psi.dot(self.psi))**2
         if verbose is True:
             print("SVD Compression error="+str(self.error))
         return self.psi
