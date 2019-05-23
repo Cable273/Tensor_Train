@@ -5,26 +5,26 @@ from MPS import *
 class common_mpo:
     def  Ising(length,J,h,boundary):
         #J*ZZ-hX
-        Z=np.array([[1,0],[0,-1]])
+        Z=np.array([[1/2,0],[0,-1/2]])
         I=np.array([[1,0],[0,1]])
-        X=np.array([[0,1],[1,0]])
+        X=np.array([[0,1/2],[1/2,0]])
 
         Q=np.zeros(np.array((3,3,2,2)))
         Q[0,0] = I
         Q[1,0] = Z
-        Q[2,0] = h*X
+        Q[2,0] = -h*X
 
         Q[2,1] = J*Z
         Q[2,2] = I
 
         V=np.zeros(np.array((3,2,2)))
-        V[0] = h*X
+        V[0] = -h*X
         V[1] = J*Z
         V[2] = I
         W=np.zeros(np.array((3,2,2)))
         W[0] = I
         W[1] = Z
-        W[2] = h*X
+        W[2] = -h*X
 
         if boundary == "periodic":
             H = mpo.uniform(length,Q)
