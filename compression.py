@@ -71,7 +71,7 @@ class var_compress:
             self.psi_trial = psi_trial
         # print("EOIHEOITHE")
         # print(np.abs(self.psi_trial.dot(self.psi_trial)))
-        self.psi_trial.right_normalize(norm=True)
+        # self.psi_trial.right_normalize(norm=True)
         # print(np.abs(self.psi_trial.dot(self.psi_trial)))
 
         self.network = rail_network(self.psi_trial,self.psi.conj())

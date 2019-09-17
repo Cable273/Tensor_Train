@@ -40,6 +40,7 @@ class dmrg:
 
         print("Build initial right blocks")
         self.R[self.network.length-1] = collapsed_layer.factory(layer(self.network,self.network.length-1))
+        temp = layer(self.network,self.network.length-1)
         pbar=ProgressBar(widgets=['Energy Network',ReverseBar()])
         for n in pbar(range(self.length-2,0,-1)):
             clayer = collapsed_layer.factory(layer(self.network,n))
@@ -66,7 +67,7 @@ class dmrg:
 
         #update site and svd to shift norm
         self.psi.node[0].tensor = M
-        self.psi.node[0].tensor, self.psi.node[1].tensor = svd_node_pair.left(self.psi.node[0],self.psi.node[1])
+        self.psi.node[0].tensor, self.psi.node[1].tensor = svd_node_pair.left(self.psi.node[0],self.psi.node[1],D_cap = self.D)
         self.L[0] = collapsed_layer.factory(layer(self.network,0))
         self.var_L[0] = collapsed_layer.factory(layer(self.var_network,0))
 
@@ -98,7 +99,7 @@ class dmrg:
             self.variance_vals = np.append(self.variance_vals,self.variance)
 
             #shift norm
-            self.psi.node[n].tensor, self.psi.node[n+1].tensor = svd_node_pair.left(self.psi.node[n],self.psi.node[n+1])
+            self.psi.node[n].tensor, self.psi.node[n+1].tensor = svd_node_pair.left(self.psi.node[n],self.psi.node[n+1],D_cap = self.D)
 
             #form new L blocks
             clayer = collapsed_layer.factory(layer(self.network,n))
@@ -132,7 +133,7 @@ class dmrg:
 
         #update site and svd to shift norm
         self.psi.node[self.length-1].tensor = M
-        self.psi.node[self.length-2].tensor, self.psi.node[self.length-1].tensor = svd_node_pair.right(self.psi.node[self.length-2],self.psi.node[self.length-1])
+        self.psi.node[self.length-2].tensor, self.psi.node[self.length-1].tensor = svd_node_pair.right(self.psi.node[self.length-2],self.psi.node[self.length-1],D_cap = self.D)
         self.R[self.length-1] = collapsed_layer.factory(layer(self.network,self.length-1))
         self.var_R[self.length-1] = collapsed_layer.factory(layer(self.var_network,self.length-1))
 
@@ -157,7 +158,6 @@ class dmrg:
             clayer = collapsed_layer.factory(layer(self.network,n))
             clayer = combine_collapsed_layers.new_collapsed_layer(self.L[n-1],clayer)
             self.energy = combine_collapsed_layers.scalar(clayer,self.R[n+1])
-            # print("\n\n"+str(self.energy))
             self.energy_vals = np.append(self.energy_vals,self.energy)
             clayer = collapsed_layer.factory(layer(self.var_network,n))
             clayer = combine_collapsed_layers.new_collapsed_layer(self.var_L[n-1],clayer)
@@ -165,7 +165,7 @@ class dmrg:
             self.variance_vals = np.append(self.variance_vals,self.variance)
 
             #shift norm
-            self.psi.node[n-1].tensor, self.psi.node[n].tensor = svd_node_pair.right(self.psi.node[n-1],self.psi.node[n])
+            self.psi.node[n-1].tensor, self.psi.node[n].tensor = svd_node_pair.right(self.psi.node[n-1],self.psi.node[n],D_cap = self.D)
 
             #update R blocks
             clayer = collapsed_layer.factory(layer(self.network,n))
@@ -218,7 +218,6 @@ class dmrg:
         #rc('font',**{'family':'serif','serif':['Palatino']})
         rc('text', usetex=True)
         # matplotlib.rcParams['figure.dpi'] = 400
-        print(self.variance_vals)
         plt.plot(self.variance_vals,marker="s")
         plt.xlabel(r"$\textrm{Sweeps}$")
         plt.ylabel(r"$\sigma(H)$")
@@ -242,10 +241,8 @@ class idmrg:
     #init with 4 site MPO + g 
     def __init__(self,H_4site,phys_dim,D):
         self.D = D
-        print(self.D)
         method = dmrg(H_4site,self.D)
         self.psi =  method.run()
-        print(np.shape(self.psi.node[1].tensor))
 
         self.psi_grown = copy.deepcopy(self.psi)
         self.H_4site = H_4site

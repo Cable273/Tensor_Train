@@ -83,11 +83,13 @@ class common_mpo:
         Q[3,3] = I
 
         V=np.zeros(np.array((4,2,2)))
+        V[1] = X
         V[2] = P
         V[3] = I
         W=np.zeros(np.array((4,2,2)))
         W[0] = I
         W[1] = P
+        W[2] = X
 
         if boundary == "periodic":
             H = mpo.uniform(length,Q)

@@ -52,7 +52,7 @@ class combine_collapsed_layers:
         if type(clayer1) is two_two and type(clayer2) is two_one:
             return two_one(np.einsum('ijab,abc->ijc',clayer1.tensor,clayer2.tensor))
         if type(clayer1) is two_two and type(clayer2) is two_zero:
-            return two_zero(np.einsum('ijab,ab->ij',clayer1.tensor,clayer2.tensor))
+            return two_zero(np.einsum('abcd,cd->ab',clayer1.tensor,clayer2.tensor))
 
         #two one
         if type(clayer1) is two_one and type(clayer2) is one_three:
@@ -106,7 +106,7 @@ class combine_collapsed_layers:
         if type(clayer1) is zero_two and type(clayer2) is two_three:
             return zero_three(np.einsum('ab,abunm->unm',clayer1.tensor,clayer2.tensor))
         if type(clayer1) is zero_two and type(clayer2) is two_two:
-            return zero_two(np.einsum('ab,abun->un',clayer1.tensor,clayer2.tensor))
+            return zero_two(np.einsum('ab,abcd->cd',clayer1.tensor,clayer2.tensor))
         if type(clayer1) is zero_two and type(clayer2) is two_one:
             return zero_one(np.einsum('ab,abu->u',clayer1.tensor,clayer2.tensor))
 
@@ -160,7 +160,7 @@ class combine_mpoNode_clayers:
                 return H_tensor
 
             elif mpo_node.legs=="right":
-                H_tensor = np.einsum('iub,abc->iauc',mpo_node.tensor,clayer1.tensor)
+                H_tensor = np.einsum('abc,dce->adbe',mpo_node.tensor,clayer1.tensor)
                 shape = np.shape(H_tensor)
                 H_tensor = H_tensor.reshape(np.array((shape[0]*shape[1],shape[2]*shape[3])))
                 return H_tensor

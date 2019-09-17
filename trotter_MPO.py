@@ -64,8 +64,11 @@ class three_site_trotter:
             return pcp_trotter(Nc)
 
     def mpo(self,tau):
-        dim=np.size(self.H.sector.matrix(),axis=0)
-        U = np.eye(dim) - 1j * tau * self.H.sector.matrix()
+        dim=np.size(self.H,axis=0)
+        # H_diag = np.diag(np.exp(-1j*tau*self.e))
+        # U=np.dot(np.conj(np.transpose(self.H.sector.eigvectors())),np.dot(H_diag,self.H.sector.eigvectors()))
+        # U = sp.linalg.expm(-1j*tau*self.H)
+        U = np.eye(dim) - 1j * tau * self.H
         T = U.reshape(np.array((self.base,self.base,self.base,self.base,self.base,self.base)))
         T = np.einsum('ijkunm->iujnkm',T)
         T = T.reshape(np.array((np.power(self.base,4),np.power(self.base,2))))
@@ -100,22 +103,13 @@ class pcp_trotter(three_site_trotter):
         H.model = np.array([[0,1,0]])
         H.model_coef=np.array([[1]])
         H.gen()
+        # H.gen_site_H(np.array([1,0]),0)
+        # H.gen_site_H(np.array([0,1]),pxp.N-2)
         H.sector.find_eig()
         return H
 
 class pxp_trotter(three_site_trotter):
     def __init__(self,Nc):
         self.base = Nc
-        self.H = self.pxp_3site(Nc)
-
-    def pxp_3site(self,Nc):
-        pxp = unlocking_System(np.arange(0,self.base),"open",self.base,3)
-        pxp.gen_basis()
-        X = spin_Hamiltonian(pxp,"x").site_ops[1]
-        H = Hamiltonian(pxp)
-        H.site_ops[1] = X
-        H.model = np.array([[0,1,0]])
-        H.model_coef=np.array([[1]])
-        H.gen()
-        H.sector.find_eig()
-        return H
+        self.H = np.array([[0,1,1,0,1,0,0,0],[1,0,0,0,0,1,0,0],[1,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[1,0,0,0,0,1,0,0],[0,1,0,0,1,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]])
+        self.e,self.u = np.linalg.eigh(self.H)

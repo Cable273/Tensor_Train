@@ -25,15 +25,14 @@ from State_Classes import zm_state,sym_state,prod_state,bin_state,ref_state
 from rw_functions import save_obj,load_obj
 from Calculations import level_stats,fidelity,eig_overlap,entropy,site_precession,site_projection,time_evolve_state
 
+
 N=4
-D=8
+D=4
 H = common_mpo.PXP(N,"open")
-N=1000
 method = idmrg(H,2,D)
-psi_trial = method.run(N)
+N=14
+psi_trial= method.run(N)
 
 H = common_mpo.PXP(N,"open")
 method = dmrg(H,D,psi=psi_trial)
 psi = method.run(N)
-method.plot_convergence()
-method.plot_var()

@@ -17,6 +17,7 @@ class rail_network:
         collapsed_edge = collapsed_layer.factory(layer(self,site=0))
         for site in range(1,self.length-1):
             collapsed_next_site = collapsed_layer.factory(layer(self,site))
+            temp = layer(self,site)
             collapsed_edge = combine_collapsed_layers.new_collapsed_layer(collapsed_edge,collapsed_next_site)
 
         collapsed_right_edge = collapsed_layer.factory(layer(self,site=self.length-1))

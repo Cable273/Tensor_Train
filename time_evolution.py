@@ -10,6 +10,7 @@ from DMRG import dmrg
 from MPS import *
 from compression import *
 from trotter_MPO import *
+
 def set_steps(trotter,tau):
     L,W,Q = trotter.mpo(tau)
     step1=open_MPO(N)
@@ -49,31 +50,60 @@ def fourth_order_tau(tau):
     t3 = tau - 2*t1 - 2*t2
     return t1,t2,t3
 
-tau = 0.1
-N=10
+def second_order_tau(tau):
+    a1 = tau/6
+    a2 = 1-2*a1
+    b1=tau/6*(3-np.power(3,0.5))
+    b2=tau/2-b1
+    c1=tau/2
+    return a1,a2,b1,b2,c1
+
+tau = 0.01
+N=12
 D=2
 Nc=2
-trotter = two_site_trotter.factory("xx")
-step1,step2 = odd_even_gates(trotter,tau)
-# step1,step2,step3 = set_steps(trotter,tau)
+# trotter = two_site_trotter.factory("xx")
+trotter = three_site_trotter.factory("pxp",Nc)
+# step1,step2 = odd_even_gates(trotter,tau)
+step1,step2,step3 = set_steps(trotter,tau)
 
-# neel state
+# z3 state
 I = np.eye(1)
 A = np.zeros([Nc,1,1])
 A[0] = 1
 B=np.zeros([Nc,1,1])
 B[Nc-1] = 1
 Vl=np.zeros([Nc,1])
-Vl[0]=  1
+Vl[Nc-1]=  1
 Vr=np.zeros([Nc,1])
-Vr[Nc-1]=  1
+Vr[0]=  1
 psi = open_MPS(N)
 psi.set_entry(0,Vl,"right")
-for n in range(1,N-2,2):
-    psi.set_entry(n,A,"both")
-for n in range(2,N-1,2):
-    psi.set_entry(n,B,"both")
 psi.set_entry(N-1,Vr,"left")
+for n in range(1,N-1):
+    if n % 3 == 0:
+        psi.set_entry(n,B,"both")
+    else:
+        psi.set_entry(n,A,"both")
+
+# neel state
+# I = np.eye(1)
+# A = np.zeros([Nc,1,1])
+# A[0] = 1
+# B=np.zeros([Nc,1,1])
+# B[Nc-1] = 1
+# Vl=np.zeros([Nc,1])
+# Vl[0]=  1
+# Vr=np.zeros([Nc,1])
+# Vr[Nc-1]=  1
+# psi = open_MPS(N)
+# psi.set_entry(0,Vl,"right")
+# for n in range(1,N-2,2):
+    # psi.set_entry(n,A,"both")
+# for n in range(2,N-1,2):
+    # psi.set_entry(n,B,"both")
+# psi.set_entry(N-1,Vr,"left")
+
 psi_orig = copy.deepcopy(psi)
 
 from Tensor_Train import rail_network
@@ -87,27 +117,44 @@ for n in pbar(range(0,np.size(t))):
     overlap = np.abs(psi.dot(psi_orig))**2
     f=np.append(f,overlap)
 
-    # step1.dot(psi)
-    # c = svd_compress(psi,D)
+    step1.dot(psi)
+    # c=svd_compress(psi,D)
     # psi = c.compress()
+    psi_trial = svd_compress(psi,D).compress()
+    c = var_compress(psi,D,psi_trial=psi_trial)
+    psi = c.compress(1e-2)
+    errors = np.append(errors,c.error)
+
+    step2.dot(psi)
+    # c=svd_compress(psi,D)
+    # psi = c.compress()
+    psi_trial = svd_compress(psi,D).compress()
+    c = var_compress(psi,D,psi_trial=psi_trial)
+    psi = c.compress(1e-2)
+    errors = np.append(errors,c.error)
+
+    step3.dot(psi)
+    # c=svd_compress(psi,D)
+    # psi_trial = svd_compress(psi,D).compress()
+    # psi = c.compress()
+    psi_trial = svd_compress(psi,D).compress()
+    c = var_compress(psi,D,psi_trial=psi_trial)
+    psi = c.compress(1e-2)
+    errors = np.append(errors,c.error)
+
+    # step1.dot(psi)
+    # # print("IHEIGH")
+    # # print(np.abs(psi.dot(psi)))
+    # psi_trial= svd_compress(psi,D).compress()
+    # c = var_compress(psi,D,psi_trial = psi_trial)
+    # psi = c.compress(1e-4)
+    # # print(np.abs(psi.dot(psi)))
     # errors = np.append(errors,c.error)
     # step2.dot(psi)
-    # c = svd_compress(psi,D)
-    # psi = c.compress()
+    # psi_trial= svd_compress(psi,D).compress()
+    # c = var_compress(psi,D,psi_trial=psi_trial)
+    # psi = c.compress(1e-4)
     # errors = np.append(errors,c.error)
-    # step3.dot(psi)
-    # c = svd_compress(psi,D)
-    # psi = c.compress()
-    # errors = np.append(errors,c.error)
-
-    step1.dot(psi)
-    c = svd_compress(psi,D)
-    psi = c.compress()
-    errors = np.append(errors,c.error)
-    step2.dot(psi)
-    c = svd_compress(psi,D)
-    psi = c.compress()
-    errors = np.append(errors,c.error)
 
 plt.plot(t,f)
 plt.show()

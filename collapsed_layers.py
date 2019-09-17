@@ -62,7 +62,7 @@ class collapsed_layer:
 
         #two two
         elif layer.top_legs == "both" and layer.bot_legs == "both" and layer.mid is None:
-            tensor = np.einsum('eab,ecd->acbd',layer.top,layer.bot)
+            tensor = np.einsum('eac,ebd->abcd',layer.top,layer.bot)
             return two_two(tensor)
         elif layer.top_legs == "both" and layer.mid_legs == "both" and layer.bot_legs is "no legs":
             tensor = np.einsum('ijk,iuab,u->jakb',layer.top,layer.mid,layer.bot)
@@ -129,7 +129,7 @@ class collapsed_layer:
 
         #two zero
         elif layer.top_legs == "left" and layer.bot_legs == "left" and layer.mid is None:
-            tensor = np.einsum('ij,ik->jk',layer.top,layer.bot)
+            tensor = np.einsum('ba,bc->ac',layer.top,layer.bot)
             return two_zero(tensor)
         elif layer.top_legs == "left" and layer.mid_legs == "left" and layer.bot_legs == "no legs":
             tensor = np.einsum('ij,iku,u->jk',layer.top,layer.mid,layer.bot)
@@ -234,7 +234,7 @@ class collapsed_layer:
 
         #zero two
         elif layer.top_legs == "right" and layer.bot_legs == "right" and layer.mid is None:
-            tensor = np.einsum('ij,ik->jk',layer.top,layer.bot)
+            tensor = np.einsum('ba,bc->ac',layer.top,layer.bot)
             return zero_two(tensor)
         elif layer.top_legs == "right" and layer.mid_legs == "right" and layer.bot_legs == "no legs":
             tensor = np.einsum('ij,iuk,u->jk',layer.top,layer.mid,layer.bot)
@@ -291,7 +291,7 @@ class collapsed_MPO_layer:
             N = N.reshape(np.array((shape[0],shape[1],shape[2])))
             return rail_node(N,"both")
         elif layer.top_legs == "both" and layer.mid_legs == "right" and layer.bot is None:
-            N = np.einsum('iab,ijc->jabc',layer.top,layer.mid)
+            N = np.einsum('cab,cde->dabe',layer.top,layer.mid)
             shape = np.shape(N)
             N = N.reshape(np.array((shape[0],shape[1],shape[2]*shape[3])))
             return rail_node(N,"both")
