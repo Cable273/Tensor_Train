@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 from collapsed_layers import *
+from rail_objects import *
 class combine_collapsed_layers:
     def new_collapsed_layer(clayer1,clayer2):
         #three three
@@ -150,6 +151,140 @@ class combine_collapsed_layers:
         if type(clayer1) is zero_one and type(clayer2) is one_zero:
             return np.einsum('i,i',clayer1.tensor,clayer2.tensor)
 
+#combine collapsed layer and uncollapsed layer - for optimal contraction strategy when contracting a rail network/dmrg
+class combine_clayer_layer:
+    def new_collapsed_layer(object1,object2):
+        #collapsed layer on the left
+        if isinstance(object1,collapsed_layer) is True:
+            clayer = object1
+            layer = object2
+
+            if type(clayer) is zero_three and layer.top_legs == "both" and layer.mid_legs == "both" and layer.bot_legs == "both":
+                temp = np.einsum('abc,iaj->ijbc',clayer.tensor,layer.top)
+                temp = np.einsum('ijbc,ikbv->kjvc',temp,layer.mid)
+                temp = np.einsum('kjvc,kcd->jvd',temp,layer.bot)
+                return zero_three(temp)
+
+            if type(clayer) is three_three and layer.top_legs == "both" and layer.mid_legs == "both" and layer.bot_legs == "both":
+                temp = np.einsum('abcdef,aidg->iabcgef',clayer.tensor,layer.top)
+                temp = np.einsum('iabcgef,ijeu->jabcguf',temp,layer.mid)
+                temp = np.einsum('jabcguf,jfv->abcguv',temp,layer.bot)
+                return three_three(temp)
+
+            if type(clayer) is three_three and layer.top_legs == "left" and layer.mid_legs == "left" and layer.bot_legs == "left":
+                temp = np.einsum('abcdef,id->iabcef',clayer.tensor,layer.top)
+                temp = np.einsum('iabcef,ije->jabcf',temp,layer.mid)
+                temp = np.einsum('jabcf,jf->abc',temp,layer.bot)
+                return three_zero(temp)
+
+            if type(clayer) is zero_two and layer.top_legs == "both" and layer.mid is None and layer.bot_legs == "both":
+                temp = np.einsum('ab,iac->icb',clayer.tensor,layer.top)
+                temp = np.einsum('icb,ibd->cd',temp,layer.bot)
+                return zero_two(temp)
+
+            if type(clayer) is two_two and layer.top_legs == "both" and layer.mid is None and layer.bot_legs == "both":
+                temp = np.einsum('abcd,ice->iabed',clayer.tensor,layer.top)
+                temp = np.einsum('iabed,idf->abef',temp,layer.bot)
+                return two_two(temp)
+
+            if type(clayer) is two_two and layer.top_legs == "left" and layer.mid is None and layer.bot_legs == "left":
+                temp = np.einsum('abcd,ic->iabd',clayer.tensor,layer.top)
+                temp = np.einsum('iabd,id->ab',temp,layer.bot)
+                return two_zero(temp)
+
+        #collapsed layer on the right
+        else:
+            clayer = object2
+            layer = object1
+
+            if type(clayer) is three_zero and layer.top_legs == "both" and layer.mid_legs == "both" and layer.bot_legs == "both":
+                temp = np.einsum('abc,ida->idbc',clayer.tensor,layer.top)
+                temp = np.einsum('idbc,ijeb->jdec',temp,layer.mid)
+                temp = np.einsum('jdec,jfc->def',temp,layer.bot)
+                return three_zero(temp)
+
+            if type(clayer) is three_three and layer.top_legs == "both" and layer.mid_legs == "both" and layer.bot_legs == "both":
+                temp = np.einsum('defabc,iud->iuefabc',clayer.tensor,layer.top)
+                temp = np.einsum('iuefabc,ijne->junfabc',temp,layer.mid)
+                temp = np.einsum('junfabc,jmf->unmabc',temp,layer.bot)
+                return three_three(temp)
+
+            if type(clayer) is three_three and layer.top_legs == "right" and layer.mid_legs == "right" and layer.bot_legs == "right":
+                temp = np.einsum('abcdef,ia->ibcdef',clayer.tensor,layer.top)
+                temp = np.einsum('ibcdef,ijb->jcdef',temp,layer.mid)
+                temp = np.einsum('jcdef,jc->def',temp,layer.bot)
+                return zero_three(temp)
+
+            if type(clayer) is two_zero and layer.top_legs == "both" and layer.mid is None and layer.bot_legs == "both":
+                temp = np.einsum('ab,ica->icb',clayer.tensor,layer.top)
+                temp = np.einsum('icb,idb->cd',temp,layer.bot)
+                return two_zero(temp)
+
+            if type(clayer) is two_two and layer.top_legs == "both" and layer.mid is None and layer.bot_legs == "both":
+                temp = np.einsum('cdab,iec->iedab',clayer.tensor,layer.top)
+                temp = np.einsum('iedab,ifd->efab',temp,layer.bot)
+                return two_two(temp)
+
+            if type(clayer) is two_two and layer.top_legs == "right" and layer.mid is None and layer.bot_legs == "right":
+                temp = np.einsum('abcd,ia->ibcd',clayer.tensor,layer.top)
+                temp = np.einsum('ibcd,ib->cd',temp,layer.bot)
+                return zero_two(temp)
+
+    def scalar(object1,object2):
+        #collapsed layer on the left
+        if isinstance(object1,collapsed_layer) is True:
+            clayer = object1
+            layer = object2
+
+            if type(clayer) is zero_three and layer.top_legs == "left" and layer.mid_legs == "left" and layer.bot_legs == "left":
+                temp = np.einsum('abc,ia->ibc',clayer.tensor,layer.top)
+                temp = np.einsum('ibc,ijb->jc',temp,layer.mid)
+                temp = np.einsum('jc,jc',temp,layer.bot)
+                return temp
+
+            if type(clayer) is three_three and layer.top_legs == "both" and layer.mid_legs == "both" and layer.bot_legs == "both":
+                temp = np.einsum('abcefg,iea->ibcfg',clayer.tensor,layer.top)
+                temp = np.einsum('ibcfg,ijfb->jcg',temp,layer.mid)
+                temp = np.einsum('jcg,jgc',temp,layer.bot)
+                return temp
+
+            if type(clayer) is zero_two and layer.top_legs == "left" and layer.mid is None and layer.bot_legs == "left":
+                temp = np.einsum('ab,ia->ib',clayer.tensor,layer.top)
+                temp = np.einsum('ib,ib',temp,layer.bot)
+                return temp
+
+            if type(clayer) is two_two and layer.top_legs == "both" and layer.mid is None and layer.bot_legs == "both":
+                temp = np.einsum('abef,iea->ibf',clayer.tensor,layer.top)
+                temp = np.einsum('ibf,ifb',temp,layer.bot)
+                return temp
+        #collapsed layer on the right
+        else:
+            clayer = object2
+            layer = object1
+
+            if type(clayer) is three_zero and layer.top_legs == "right" and layer.mid_legs == "right" and layer.bot_legs == "right":
+                temp = np.einsum('abc,ia->ibc',clayer.tensor,layer.top)
+                temp = np.einsum('ibc,ijb->jc',temp,layer.mid)
+                temp = np.einsum('jc,jc',temp,layer.bot)
+                return temp
+
+            if type(clayer) is three_three and layer.top_legs == "both" and layer.mid_legs == "both" and layer.bot_legs == "both":
+                temp = np.einsum('efgabc,iae->ifgbc',clayer.tensor,layer.top)
+                temp = np.einsum('ifgbc,ijbf->jgc',temp,layer.mid)
+                temp = np.einsum('jgc,jcg',temp,layer.bot)
+                return temp
+
+            if type(clayer) is two_zero and layer.top_legs == "right" and layer.mid is None and layer.bot_legs == "right":
+                temp = np.einsum('ab,ia->ib',clayer.tensor,layer.top)
+                temp = np.einsum('ib,ib',clayer.tensor,layer.bot)
+                return temp
+
+            if type(clayer) is two_two and layer.top_legs == "both" and layer.mid is None and layer.bot_legs == "both":
+                temp = np.einsum('efab,iae->ifb',clayer.tensor,layer.top)
+                temp = np.einsum('ifb,ibf',clayer.tensor,layer.bot)
+                return temp
+
+#to form H matrix for DMRG optimization
 class combine_mpoNode_clayers:
     def factory(mpo_node,clayer1,clayer2=None):
         if clayer2 is None:
@@ -177,6 +312,7 @@ class combine_mpoNode_clayers:
             H_tensor = H_tensor.rehsape(np.array((shape[0]*shape[1]*shape[2],shape[3]*shape[4]*shape[5])))
             return H_tensor
 
+#for repeated application of MPOS (time evolution)
 class combine_mpo_nodes_vertical:
     def factory(node1,node2):
         if node1.legs == "both" and node2.legs == "both":
@@ -226,3 +362,9 @@ class combine_mpo_nodes_vertical:
             shape = np.shape(mpo_tensor)
             mpo_tensor =  mpo_tensor.reshape(np.array((shape[0],shape[1],shape[2],shape[3])))
             return rail_node(mpo_tensor,"both")
+
+        if node1.tensor is not None and node2.tensor is None:
+            return rail_node(node1.tensor,node1.legs)
+        elif node1.tensor is None and node2.tensor is not None:
+            return rail_node(node2.tensor,node2.legs)
+

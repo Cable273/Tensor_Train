@@ -5,9 +5,9 @@ from MPS import *
 class common_mpo:
     def  Ising(length,J,h,boundary):
         #J*ZZ-hX
-        Z=np.array([[1/2,0],[0,-1/2]])
+        X=np.array([[1/2,0],[0,-1/2]])
         I=np.array([[1,0],[0,1]])
-        X=np.array([[0,1/2],[1/2,0]])
+        Z=np.array([[0,1/2],[1/2,0]])
 
         Q=np.zeros(np.array((3,3,2,2)))
         Q[0,0] = I
@@ -72,7 +72,7 @@ class common_mpo:
 
     def  PXP(length,boundary):
         X=np.array([[0,1],[1,0]])
-        P = np.array([[0,0],[0,1]])
+        P = np.array([[1,0],[0,0]])
         I = np.array([[1,0],[0,1]])
 
         Q=np.zeros(np.array((4,4,2,2)))

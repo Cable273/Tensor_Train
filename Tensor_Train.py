@@ -16,9 +16,5 @@ class rail_network:
     def contract(self):
         collapsed_edge = collapsed_layer.factory(layer(self,site=0))
         for site in range(1,self.length-1):
-            collapsed_next_site = collapsed_layer.factory(layer(self,site))
-            temp = layer(self,site)
-            collapsed_edge = combine_collapsed_layers.new_collapsed_layer(collapsed_edge,collapsed_next_site)
-
-        collapsed_right_edge = collapsed_layer.factory(layer(self,site=self.length-1))
-        self.contraction = combine_collapsed_layers.scalar(collapsed_edge,collapsed_right_edge)
+            collapsed_edge = combine_clayer_layer.new_collapsed_layer(collapsed_edge,layer(self,site))
+        self.contraction = combine_clayer_layer.scalar(collapsed_edge,layer(self,self.length-1))

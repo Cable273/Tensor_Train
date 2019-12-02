@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import numpy as np
-from Tensor_Train import *
+from rail_objects import *
 from progressbar import ProgressBar,FormatLabel,BouncingBar,ReverseBar,Bar
 from svd_operations import svd_node_pair
 from MPS import *
@@ -28,20 +28,24 @@ class svd_compress:
         self.psi_orig = copy.deepcopy(psi)
         self.length = psi.length
         self.D = D
-        self.psi.right_normalize(norm=True)
+        self.psi.right_normalize()
 
     def compress(self,norm=False,verbose=False):
         if verbose is True:
             pbar=ProgressBar()
             for n in pbar(range(0,self.length-1)):
-                self.psi.node[n].tensor,self.psi.node[n+1].tensor = svd_node_pair.left(self.psi.node[n],self.psi.node[n+1],rescale=True,D_cap=self.D)
+                self.psi.node[n].tensor,self.psi.node[n+1].tensor = svd_node_pair.left(self.psi.node[n],self.psi.node[n+1],D_cap=self.D,rescale=True)
         else:
             for n in range(0,self.length-1):
-                self.psi.node[n].tensor,self.psi.node[n+1].tensor = svd_node_pair.left(self.psi.node[n],self.psi.node[n+1],rescale=True,D_cap=self.D)
+                self.psi.node[n].tensor,self.psi.node[n+1].tensor = svd_node_pair.left(self.psi.node[n],self.psi.node[n+1],D_cap=self.D,rescale=True)
 
         new_norm = np.abs(np.einsum('ab,ab',self.psi.node[self.length-1].tensor,np.conj(self.psi.node[self.length-1].tensor)))
-        # self.psi.node[0].tensor = self.psi.node[0].tensor * np.power(self.orig_norm/new_norm,0.5)
-        # new_norm = np.abs(np.einsum('ab,ab',self.psi.node[self.length-1].tensor,np.conj(self.psi.node[self.length-1].tensor)))
+        # new_norm = np.abs(self.psi.dot(self.psi))
+        # print(new_norm,np.abs(self.psi.dot(self.psi)))
+        if norm == False:
+            self.psi.node[self.length-1].tensor = self.psi.node[self.length-1].tensor * np.power(self.orig_norm/new_norm,0.5)
+        else:
+            self.psi.node[self.length-1].tensor = self.psi.node[self.length-1].tensor / np.power(new_norm,0.5)
 
         # cross_network = rail_network(self.psi_orig.conj(),self.psi)
         # cross_network.contract()

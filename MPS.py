@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import numpy as np
-from Tensor_Train import *
+from rail_objects import *
 from progressbar import ProgressBar
-from svd_operations import svd_node_pair,svd_norm_node
+from svd_operations import *
+from combine_rail_objects import *
+from Tensor_Train import *
 import copy
+
 class mps:
     def uniform(length,A,V=None,W=None):
         if V is None and W is None: return periodic_MPS(length,A)
@@ -32,38 +35,36 @@ class mps:
         network.contract()
         return network.contraction
     
-    def left_normalize(self,norm=False,verbose=False,norm_val=None):
+    def norm(self):
+        norm = np.power(np.abs(self.dot(self)),0.5)
+        for n in range(0,self.length):
+            self.node[n].tensor = self.node[n].tensor/norm
+    
+    def left_normalize(self,norm=False,verbose=False,D=None,rescale=None):
+        norm_val = np.abs(self.dot(self))
         if verbose is True:
             print("Left normalizing MPS")
             pbar=ProgressBar()
             for n in pbar(range(0,self.length-1)):
-                self.node[n].tensor,self.node[n+1].tensor = svd_node_pair.left(self.node[n],self.node[n+1])
+                self.node[n].tensor,self.node[n+1].tensor = svd_node_pair.left(self.node[n],self.node[n+1],D_cap=D,rescale=rescale)
         else:
             for n in range(0,self.length-1):
-                self.node[n].tensor,self.node[n+1].tensor = svd_node_pair.left(self.node[n],self.node[n+1])
+                self.node[n].tensor,self.node[n+1].tensor = svd_node_pair.left(self.node[n],self.node[n+1],D_cap=D,rescale=rescale)
         if norm is True:
-            new_norm = np.abs(self.dot(self))
-            self.node[self.length-1].tensor = self.node[self.length-1].tensor * np.power(norm_val/new_norm,0.5)
+            self.node[self.length-1].tensor = self.node[self.length-1].tensor / np.power(norm_val,0.5)
 
-    def right_normalize(self,norm=False,rescale=False,verbose=False,D=None):
+    def right_normalize(self,norm=False,verbose=False,D=None,rescale=None):
         pbar=ProgressBar()
         norm_val = np.abs(self.dot(self))
         if verbose is True:
             print("Right normalizing MPS")
             for n in pbar(range(self.length-1,0,-1)):
-                if D is not None:
-                    self.node[n-1].tensor,self.node[n].tensor = svd_node_pair.right(self.node[n-1],self.node[n])
-                else:
-                    self.node[n-1].tensor,self.node[n].tensor = svd_node_pair.right(self.node[n-1],self.node[n],D_cap=D)
+                self.node[n-1].tensor,self.node[n].tensor = svd_node_pair.right(self.node[n-1],self.node[n],D_cap=D,rescale=rescale)
         else:
             for n in range(self.length-1,0,-1):
-                if D is not None:
-                    self.node[n-1].tensor,self.node[n].tensor = svd_node_pair.right(self.node[n-1],self.node[n])
-                else:
-                    self.node[n-1].tensor,self.node[n].tensor = svd_node_pair.right(self.node[n-1],self.node[n],D_cap=D)
+                self.node[n-1].tensor,self.node[n].tensor = svd_node_pair.right(self.node[n-1],self.node[n],D_cap=D,rescale=rescale)
         if norm is True:
-            new_norm = np.abs(self.dot(self))
-            self.node[0].tensor = self.node[0].tensor * np.power(norm_val/new_norm,0.5)
+            self.node[0].tensor = self.node[0].tensor / np.power(norm_val,0.5)
 
     def mixed_normalize(self,site):
         print("Mixed normalizing MPS")
@@ -128,6 +129,39 @@ class mpo:
             for n in range(0,self.length):
                 new_mpo.node[n] = combine_mpo_nodes_vertical.factory(self.node[n],psi.node[n])
             return new_mpo
+
+    def left_normalize(self,norm=False,verbose=False,D=None,rescale=None):
+        if verbose is True:
+            print("Left normalizing MPS")
+            pbar=ProgressBar()
+            for n in pbar(range(0,self.length-1)):
+                self.node[n].tensor,self.node[n+1].tensor = svd_mpo_node_pair.left(self.node[n],self.node[n+1],D_cap=D,rescale=rescale)
+        else:
+            for n in range(0,self.length-1):
+                self.node[n].tensor,self.node[n+1].tensor = svd_mpo_node_pair.left(self.node[n],self.node[n+1],D_cap=D,rescale=rescale)
+        if norm is True:
+            new_norm = np.abs(self.dot(self))
+            self.node[self.length-1].tensor = self.node[self.length-1].tensor * np.power(norm_val/new_norm,0.5)
+
+    def right_normalize(self,norm=False,verbose=False,D=None,rescale=None):
+        pbar=ProgressBar()
+        if verbose is True:
+            print("Right normalizing MPS")
+            for n in pbar(range(self.length-1,0,-1)):
+                self.node[n-1].tensor,self.node[n].tensor = svd_mpo_node_pair.right(self.node[n-1],self.node[n],D_cap=D,rescale=rescale)
+        else:
+            for n in range(self.length-1,0,-1):
+                self.node[n-1].tensor,self.node[n].tensor = svd_mpo_node_pair.right(self.node[n-1],self.node[n],D_cap=D,rescale=rescale)
+        if norm is True:
+            new_norm = np.abs(self.dot(self))
+            self.node[0].tensor = self.node[0].tensor * np.power(norm_val/new_norm,0.5)
+
+    def herm_conj(self):
+        Q_conj = copy.deepcopy(self)
+        for n in range(0,self.length-1):
+            if Q_conj.node is not None:
+                Q_conj.node[n].tensor = np.conj(np.einsum('ij...->ji...',Q_conj.node[n].tensor))
+        return Q_conj
 
 class periodic_MPS(mps):
     def __init__(self,length,A=None):
@@ -196,6 +230,7 @@ class open_MPS(mps):
         new_MPS.node[self.length-1] = rail_node(M,"left")
         return new_MPS
 
+
 class periodic_MPO(mpo):
     def __init__(self,length,Q=None):
         self.length = length
@@ -203,6 +238,8 @@ class periodic_MPO(mpo):
         for n in range(0,self.length):
             self.node[n] = rail_node()
         if Q is not None:
+            #reshape so legs corrspond to: up down left right
+            Q=np.einsum('ijkl->klij',Q)
             for n in range(0,self.length):
                 self.node[n] = rail_node(Q,legs="both")
 

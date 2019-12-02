@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import numpy as np
+# from combine_rail_objects import *
+from collapsed_layers import *
+
 class rail_node:
     def __init__(self,tensor=None,legs=None):
         self.tensor = tensor
@@ -48,5 +51,4 @@ class layer:
             self.mid_legs = None
         else:
             self.mid_legs = rail_network.mid_row.node[site].legs
-
 
