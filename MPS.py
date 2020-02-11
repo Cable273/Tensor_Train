@@ -259,3 +259,102 @@ class open_MPO(mpo):
             for n in range(1,self.length-1):
                 self.node[n] = rail_node(Q,legs="both")
             self.node[self.length-1] = rail_node(W,legs="left")
+
+class vidalOpenMPS:
+    def __init__(self,initMps):
+        self.initMps = initMps
+        self.length = self.initMps.length
+
+        #site tensors + bond singular values 
+        self.genVidalForm()
+
+    def genVidalForm(self):
+        #first site + last sites do sep
+        self.singulars = dict()
+        self.node = dict()
+        M = self.initMps.node[0].tensor
+
+        U,S,Vh = np.linalg.svd(M,full_matrices=False)
+        #check for singulars < 1e-7, truncate further, for numerical stability
+        cut = None
+        for m in range(0,np.size(S,axis=0)):
+            if np.abs(S[m])<1e-8:
+                cut = m
+                break
+        if cut is not None:
+            U = U[:,:cut]
+            S = S[:cut]
+            Vh = Vh[:cut,:]
+        self.node[0] = U #left gamma matrix
+        self.singulars[0] = S
+        R = np.dot(np.diag(S),Vh)
+
+        #loop through centre states
+        for n in range(1,self.length-1):
+            RM = np.einsum('ab,ibc->iac',R,self.initMps.node[n].tensor)
+            dims = np.shape(RM)
+            RM = RM.reshape((dims[0]*dims[1],dims[2]))
+            U,S,Vh = np.linalg.svd(RM,full_matrices=False)
+            #check for singulars < 1e-7, truncate further, for numerical stability
+            cut = None
+            for m in range(0,np.size(S,axis=0)):
+                if np.abs(S[m])<1e-8:
+                    cut = m
+                    break
+            if cut is not None:
+                U = U[:,:cut]
+                S = S[:cut]
+                Vh = Vh[:cut,:]
+            A = U.reshape((dims[0],dims[1],np.size(S)))
+            #inverse of singulars dangerous numerical stability
+            prevSingularM = np.diag(np.power(self.singulars[n-1],-1)) 
+            gamma = np.einsum('ab,ibc->iac',prevSingularM,A)
+            self.node[n] = gamma
+            self.singulars[n] = S
+            R = np.dot(np.diag(S),Vh)
+
+        RM = np.einsum('ab,ib->ia',R,self.initMps.node[self.length-1].tensor)
+        A = np.einsum('ab,ibc->iac',np.diag(self.singulars[self.length-3]),self.node[self.length-2])
+        M = np.einsum('iac,jc->iaj',A,RM)
+        dims = np.shape(M)
+        M = M.reshape((dims[0]*dims[1],dims[2]))
+        U,S,Vh = np.linalg.svd(M,full_matrices=False)
+        #check for singulars < 1e-7, truncate further, for numerical stability
+        cut = None
+        for m in range(0,np.size(S,axis=0)):
+            if np.abs(S[m])<1e-8:
+                cut = m
+                break
+        if cut is not None:
+            U = U[:,:cut]
+            S = S[:cut]
+            Vh = Vh[:cut,:]
+        A = U.reshape([dims[0],dims[1],np.size(S)])
+        prevSingularM = np.diag(np.power(self.singulars[self.length-3],-1)) 
+        gamma_Lm2 = np.einsum('ab,ibc->iac',prevSingularM,A)
+        gamma_Lm1 = np.transpose(Vh)
+
+        self.node[self.length-2] = gamma_Lm2
+        self.node[self.length-1] = gamma_Lm1
+        self.singulars[self.length-2] = S
+
+        #alt
+        # RM = np.einsum('ab,ib->ia',R,self.initMps.node[self.length-1].tensor)
+        # prevSingularM = np.diag(np.power(self.singulars[self.length-2],-1)) 
+        # gamma = np.einsum('ab,ib->ia',prevSingularM,RM)
+        # self.node[self.length-1] = gamma
+
+    def vdot(self,B):
+        #initial left side
+        L = np.einsum('ia,ib->ab',self.node[0],np.conj(B.node[0]))
+        L = np.einsum('ab,ac->cb',L,np.diag(self.singulars[0]))
+        L = np.einsum('cb,bd->cd',L,np.conj(np.diag(B.singulars[0])))
+
+        for n in range(1,self.length-1):
+            L = np.einsum('ab,iac->icb',L,self.node[n])
+            L = np.einsum('icb,ibd->cd',L,np.conj(B.node[n]))
+            L = np.einsum('cd,ce->ed',L,np.diag(self.singulars[n]))
+            L = np.einsum('ed,df->ef',L,np.conj(np.diag(B.singulars[n])))
+        L = np.einsum('ab,ia->ib',L,self.node[self.length-1])
+        scalar = np.einsum('ib,ib',L,np.conj(B.node[self.length-1]))
+        return scalar
