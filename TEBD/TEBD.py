@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import math
 import numpy as np
-from MPS import mpo,mps
+from MPS import *
 from rail_objects import *
 from common_MPOs import common_mpo
 from compression import var_compress,svd_compress
@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 from DMRG import *
 from progressbar import ProgressBar
 import copy
-from trotter_gate_application import *
+from trotter_gate_applicationVidal import *
+from copy import deepcopy
 
 class TEBD:
     def __init__(self,trotter_gates,psi_init,D):
@@ -20,25 +21,49 @@ class TEBD:
         self.phys_dim = np.shape(psi_init.node[0].tensor)[0]
         self.psi = copy.deepcopy(psi_init)
 
+        #find vidal form of psi (open mps only)
+        self.psiVidal = vidalOpenMPS(self.psi)
+        self.psiVidalInit = deepcopy(self.psiVidal)
+
     def run(self,delta_t,t_max):
         print("Evolving with TEBD")
         self.t=np.arange(0,t_max+delta_t,delta_t)
         self.f=np.zeros(np.size(self.t))
         self.f[0] = 1
         self.error = np.zeros(np.size(self.t))
+        self.entropy = np.zeros(np.size(self.t))
+        self.distance_error = np.zeros(np.size(self.t))
+
+        if self.psiVidal.length % 2 == 0:
+            bipartiteCut = int(self.psiVidal.length/2-1)
+        else:
+            bipartiteCut = int((self.psiVidal.length-1)/2-1)
+
+        S = self.psiVidal.singulars[bipartiteCut]
+        self.entropy[0] = -np.sum(S**2*np.log(S**2))
+
         pbar=ProgressBar()
         for n in pbar(range(1,np.size(self.t,axis=0))):
-            psi_exact = copy.deepcopy(self.psi)
+            error = 0
             for row in range(0,len(self.trotter_gates)):
-                loc = list(self.trotter_gates[row].keys())
-                for m in range(0,np.size(loc,axis=0)):
-                    applier = gate_application_method.factory(self.trotter_gates[row][loc[m]],self.psi,loc[m],self.D,self.phys_dim)
-                    # applier_exact = gate_application_method.factory(self.trotter_gates[row][loc[m]],psi_exact,loc[m],self.D,self.phys_dim)
+                keys = list(self.trotter_gates[row].keys())
+                for m in range(0,np.size(keys,axis=0)):
+                    # print(row,m)
+                    applier = gate_application_method.factory(self.trotter_gates[row][keys[m]],self.psiVidal,self.D,self.phys_dim)
                     applier.apply()
+                    error += applier.error
 
-            # error = np.abs(self.psi.dot(self.psi)+psi_exact.dot(psi_exact)-self.psi.dot(psi_exact)-psi_exact.dot(self.psi))
-            # self.error[n] = self.error[n-1] + error
-            self.f[n] = np.abs(self.psi_init.dot(self.psi))**2
+            #update entropy from middle singular vals
+            if self.psiVidal.length % 2 == 0:
+                bipartiteCut = int(self.psiVidal.length/2-1)
+            else:
+                bipartiteCut = int((self.psiVidal.length-1)/2-1)
+            S = self.psiVidal.singulars[bipartiteCut]
+            self.entropy[n] = -np.sum(S**2*np.log(S**2))
+
+            #update truncation error + fidelity
+            self.error[n] = self.error[n-1] + error
+            self.f[n] = np.abs(self.psiVidal.vdot(self.psiVidalInit))**2
 
     def plot_fidelity(self):
         plt.plot(self.t,self.f)
