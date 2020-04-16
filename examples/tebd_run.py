@@ -18,18 +18,21 @@ rc('font',**{'family':'sans-serif','sans-serif':['Computer Modern'],'size':26})
 rc('text', usetex=True)
 # matplotlib.rcParams['figure.dpi'] = 400
 
-N=40
-phys_dim = 2
+N=14
+phys_dim = 7
 D=20
 delta_t = 0.01
-t_max = 20
+t_max = 10
 
 from common_trotters import common_trotters, uniformTrotters
+# x = np.array([[0,1],[1,0]])
+# p = np.array([[1,0],[0,0]])
+# XX = np.kron(x,x)
+# trotter_gates = uniformTrotters.gen(N,XX,2,phys_dim,delta_t,trotter_order=1)
 
 trotter_gates = common_trotters.PXP(N,phys_dim,delta_t,trotter_order = 1)
 
 #initial state
-# Neel state (init state)
 I = np.eye(1)
 A = np.zeros([phys_dim,1,1])
 A[0] = 1
@@ -39,6 +42,8 @@ Vr=np.zeros([phys_dim,1])
 Vr[0]=  1
 Vl=np.zeros([phys_dim,1])
 Vl[phys_dim-1]=  1
+
+# Neel state (init state)
 psi = open_MPS(N)
 psi.set_entry(0,Vl,"right")
 for n in range(1,N-2,2):
@@ -46,7 +51,17 @@ for n in range(1,N-2,2):
 for n in range(2,N-1,2):
     psi.set_entry(n,B,"both")
 psi.set_entry(N-1,Vr,"left")
-psi.right_normalize()
+# psi.right_normalize()
+
+#z4
+# psi = open_MPS(N)
+# psi.set_entry(0,Vl,"right")
+# for n in range(1,N-1):
+    # psi.set_entry(n,A,"both")
+# psi.set_entry(N-1,Vr,"left")
+# no_uc_cells = int(N/4)
+# for n in range(1,no_uc_cells):
+    # psi.set_entry(4*n,B,"both")
 
 from TEBD import TEBD
 tebd = TEBD(trotter_gates,psi,D)

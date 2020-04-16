@@ -50,15 +50,11 @@ class TDVP:
         #form Heff from product of exp/overlap transfer matrices
         #update site
         Pr = np.einsum('abc,cd->abd',self.expR[1].tensor,self.overlapR[1].tensor)
-        # M = np.einsum('ia,ijb->jab',self.psi.node[0].tensor,self.H.node[0].tensor)
-        # M = np.einsum('jab,abd->jd',M,Pr)
-        # A = self.psi.node[0].tensor -1j * delta_t * M
 
         H = np.einsum('ijb,abc->jcia',self.H.node[0].tensor,Pr)
         dims = np.shape(H)
         H = H.reshape((dims[0]*dims[1],dims[2]*dims[3]))
         A = self.psi.node[0].tensor.reshape((dims[0]*dims[1]))
-        # A = expiH.krylov(H,A,delta_t)
         A = integrator(H,A,delta_t)
         A = A.reshape((dims[0],dims[1]))
             
@@ -71,9 +67,12 @@ class TDVP:
         #update bond with backwards TDVP evolution
         C = np.dot(np.diag(S),Vh)
         Pl = np.einsum('abc,cd->abd',self.expL[0].tensor,self.overlapL[0].tensor)
-        M = np.einsum('abc,ad->bcd',Pl,C)
-        M = np.einsum('bcd,dbe->ce',M,Pr)
-        C = C + 1j * delta_t * M
+        H = np.einsum('abc,dbf->cfad',Pl,Pr)
+        dims = np.shape(H)
+        H = H.reshape((dims[0]*dims[1],dims[2]*dims[3]))
+        C = C.reshape((dims[0]*dims[1]))
+        C = integrator(H,C,-delta_t)
+        C = C.reshape((dims[0],dims[1]))
 
         #multiply C into next site and continue sweep
         self.psi.node[1].tensor = np.einsum('ab,ibc->iac',C,self.psi.node[1].tensor)
@@ -82,17 +81,12 @@ class TDVP:
         for n in range(1,self.length-1):
             Pr = np.einsum('abc,cd->abd',self.expR[n+1].tensor,self.overlapR[n+1].tensor)
             Pl = np.einsum('abc,cd->abd',self.expL[n-1].tensor,self.overlapL[n-1].tensor)
-            # W = np.einsum('abc,ijbe->ijace',Pl,self.H.node[n].tensor)
-            # W = np.einsum('ijace,def->ijadcf',W,Pr)
-            # M = np.einsum('iad,ijadcf->jcf',self.psi.node[n].tensor,W)
-            # A = self.psi.node[n].tensor -1j * delta_t * M
 
             H = np.einsum('ijbe,abc->ijace',self.H.node[n].tensor,Pl)
             H = np.einsum('ijace,def->jcfiad',H,Pr)
             dims = np.shape(H)
             H = H.reshape((dims[0]*dims[1]*dims[2],dims[3]*dims[4]*dims[5]))
             A = self.psi.node[n].tensor.reshape((dims[0]*dims[1]*dims[2]))
-            # A = expiH.krylov(H,A,delta_t)
             A = integrator(H,A,delta_t)
             A = A.reshape((dims[0],dims[1],dims[2]))
 
@@ -108,9 +102,12 @@ class TDVP:
             #update bond with backwards TDVP evolution
             C = np.dot(np.diag(S),Vh)
             Pl = np.einsum('abc,cd->abd',self.expL[n].tensor,self.overlapL[n].tensor)
-            M = np.einsum('abc,ad->bcd',Pl,C)
-            M = np.einsum('bcd,dbe->ce',M,Pr)
-            C = C + 1j * delta_t * M
+            H = np.einsum('abc,dbf->cfad',Pl,Pr)
+            dims = np.shape(H)
+            H = H.reshape((dims[0]*dims[1],dims[2]*dims[3]))
+            C = C.reshape((dims[0]*dims[1]))
+            C = integrator(H,C,-delta_t)
+            C = C.reshape((dims[0],dims[1]))
 
             #multiply C into next site and continue sweep
             if n != self.length-2:
@@ -124,19 +121,13 @@ class TDVP:
         #form Heff from product of exp/overlap transfer matrices
         #update site
         Pl = np.einsum('abc,cd->abd',self.expL[self.length-2].tensor,self.overlapL[self.length-2].tensor)
-        # M = np.einsum('ia,ijb->jab',self.psi.node[self.length-1].tensor,self.H.node[self.length-1].tensor)
-        # M = np.einsum('jab,abc->jc',M,Pl)
-        # A = self.psi.node[self.length-1].tensor -1j * delta_t * M
-        # A = np.transpose(A)
 
         H = np.einsum('abc,ijb->jcia',Pl,self.H.node[self.length-1].tensor)
         dims = np.shape(H)
         H = H.reshape((dims[0]*dims[1],dims[2]*dims[3]))
         A = self.psi.node[self.length-1].tensor.reshape((dims[0]*dims[1]))
-        # A = expiH.krylov(H,A,delta_t)
         A = integrator(H,A,delta_t)
         A = A.reshape((dims[0],dims[1]))
-        A = A.transpose()
 
         U,S,Vh = np.linalg.svd(A,full_matrices=False)
         self.psi.node[self.length-1].tensor = np.transpose(Vh)
@@ -147,9 +138,12 @@ class TDVP:
         #update bond with backwards TDVP evolution
         C = np.dot(U,np.diag(S))
         Pr = np.einsum('abc,cd->abd',self.expR[self.length-1].tensor,self.overlapR[self.length-1].tensor)
-        M = np.einsum('abc,ad->bcd',Pl,C)
-        M = np.einsum('bcd,dbe->ce',M,Pr)
-        C = C + 1j * delta_t * M
+        H = np.einsum('abc,dbf->cfad',Pl,Pr)
+        dims = np.shape(H)
+        H = H.reshape((dims[0]*dims[1],dims[2]*dims[3]))
+        C = C.reshape((dims[0]*dims[1]))
+        C = integrator(H,C,-delta_t)
+        C = C.reshape((dims[0],dims[1]))
 
         #multiply C into next site and continue sweep
         self.psi.node[self.length-2].tensor = np.einsum('iab,bc->iac',self.psi.node[self.length-2].tensor,C)
@@ -158,17 +152,12 @@ class TDVP:
         for n in range(self.length-2,0,-1):
             Pr = np.einsum('abc,cd->abd',self.expR[n+1].tensor,self.overlapR[n+1].tensor)
             Pl = np.einsum('abc,cd->abd',self.expL[n-1].tensor,self.overlapL[n-1].tensor)
-            # W = np.einsum('abc,ijbe->ijace',Pl,self.H.node[n].tensor)
-            # W = np.einsum('ijace,def->ijadcf',W,Pr)
-            # M = np.einsum('iad,ijadcf->jcf',self.psi.node[n].tensor,W)
-            # A = self.psi.node[n].tensor -1j * delta_t * M
 
             H = np.einsum('ijbe,abc->ijace',self.H.node[n].tensor,Pl)
             H = np.einsum('ijace,def->jcfiad',H,Pr)
             dims = np.shape(H)
             H = H.reshape((dims[0]*dims[1]*dims[2],dims[3]*dims[4]*dims[5]))
             A = self.psi.node[n].tensor.reshape((dims[0]*dims[1]*dims[2]))
-            # A = expiH.krylov(H,A,delta_t)
             A = integrator(H,A,delta_t)
             A = A.reshape((dims[0],dims[1],dims[2]))
 
@@ -185,9 +174,12 @@ class TDVP:
             #update bond with backwards TDVP evolution
             C = np.dot(U,np.diag(S))
             Pr = np.einsum('abc,cd->abd',self.expR[n].tensor,self.overlapR[n].tensor)
-            M = np.einsum('abc,ad->bcd',Pl,C)
-            M = np.einsum('bcd,dbe->ce',M,Pr)
-            C = C + 1j * delta_t * M
+            H = np.einsum('abc,dbf->cfad',Pl,Pr)
+            dims = np.shape(H)
+            H = H.reshape((dims[0]*dims[1],dims[2]*dims[3]))
+            C = C.reshape((dims[0]*dims[1]))
+            C = integrator(H,C,-delta_t)
+            C = C.reshape((dims[0],dims[1]))
 
             #multiply C into next site and continue sweep
             if n != 1:
@@ -199,7 +191,7 @@ class TDVP:
 
     def run(self,delta_t,t_max,integrator):
         print("Evolving with TDVP")
-        self.t=np.arange(0,t_max+delta_t,delta_t)
+        self.t=np.arange(0,t_max+delta_t/2,delta_t/2)
         self.f=np.zeros(np.size(self.t))
         self.energy = np.zeros(np.size(self.t))
         # self.expNetwork.contract()
@@ -209,11 +201,12 @@ class TDVP:
         for n in pbar(range(1,np.size(self.t,axis=0))):
             self.rightSweep(delta_t/2,integrator)
             self.leftSweep(delta_t/2,integrator)
+            norm = np.abs(self.psi.dot(self.psi))
+            # if np.abs(1-norm)>0.1:
+                # for m in range(0,self.length):
+                    # self.psi.node[m].tensor = self.psi.node[m].tensor / np.power(norm,1/(2*self.length))
+                    # self.psiConj.node[m].tensor = self.psiConj.node[m].tensor / np.power(norm,1/(2*self.length))
             self.f[n] = np.abs(self.psi.dot(self.psi_init))**2
-            # norm = np.abs(self.psi.dot(self.psi))
-            # for m in range(0,self.length):
-                # self.psi.node[m].tensor = self.psi.node[m].tensor / np.power(norm,1/(2*self.length))
-                # self.psiConj.node[m].tensor = self.psiConj.node[m].tensor / np.power(norm,1/(2*self.length))
 
             # self.expNetwork.contract()
             # self.energy[n] = self.expNetwork.contraction

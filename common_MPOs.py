@@ -34,8 +34,8 @@ class common_mpo:
 
     def  Heis(length,J,boundary):
         #J*dot(S_i,S_i+1)
-        Sp=np.array([[0,1],[0,0]])
-        Sm=np.array([[0,0],[1,0]])
+        Sp=np.array([[0,0],[1,0]])
+        Sm=np.array([[0,1],[0,0]])
         I=np.array([[1,0],[0,1]])
         Z=np.array([[1/2,0],[0,-1/2]])
 
@@ -90,6 +90,30 @@ class common_mpo:
         W[0] = I
         W[1] = P
         W[2] = X
+
+        if boundary == "periodic":
+            H = mpo.uniform(length,Q)
+        else:
+            H = mpo.uniform(length,Q,V,W)
+        return H
+
+    def  XX(length,boundary):
+        X=np.array([[0,1],[1,0]])
+        I=np.array([[1,0],[0,1]])
+
+        Q=np.zeros(np.array((3,3,2,2)))
+        Q[0,0] = I
+        Q[1,0] = X
+
+        Q[2,1] = X
+        Q[2,2] = I
+
+        V=np.zeros(np.array((3,2,2)))
+        V[1] = X
+        V[2] = I
+        W=np.zeros(np.array((3,2,2)))
+        W[0] = I
+        W[1] = X
 
         if boundary == "periodic":
             H = mpo.uniform(length,Q)

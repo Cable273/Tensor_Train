@@ -9,10 +9,11 @@ import matplotlib.pyplot as plt
 from DMRG import *
 from collapsed_layers import collapsed_layer
 
-N=10
-D=100
-H = common_mpo.Heis(N,1,"open")
-# H = common_mpo.PXP(N,"open")
+N=1000
+D=10
+# H = common_mpo.Heis(N,1,"open")
+H = common_mpo.PXP(N,"open")
+# H = common_mpo.XX(N,"open")
 
 # grow chain to desired length
 method = idmrg(H,2,D)

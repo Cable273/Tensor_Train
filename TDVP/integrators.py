@@ -25,7 +25,6 @@ class expiH:
         kBasis = psi0
         currentState = psi0
         psiLast = np.exp(-1j*np.vdot(psi0,np.dot(H,psi0))*t)*psi
-        # for n in range(0,np.size(psi0)):
         for n in range(0,10):
             nextState = np.dot(H,currentState)
             nextStateOrth = orth(nextState,kBasis)
@@ -46,9 +45,16 @@ class expiH:
                     break
                 else:
                     psiLast = psiNew
-        # print(n)
         return psiLast
 
-    def euler(H,psi,t):
-        U = np.eye(np.size(H,axis=0)) - 1j * H * t
+    def euler(H,psi,delta_t):
+        U = np.eye(np.size(H,axis=0)) - 1j * H * delta_t
         return np.dot(U,psi)
+
+    def rungeKutta4(H,psi,t):
+        U = -1j*H*t
+        k1 = np.dot(U,psi)
+        k2 = np.dot(U,psi+1/2*k1)
+        k3 = np.dot(U,psi+1/2*k2)
+        k4 = np.dot(U,psi+k3)
+        return psi + 1/6*(k1+2*k2+2*k3+k4)

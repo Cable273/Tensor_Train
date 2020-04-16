@@ -48,7 +48,6 @@ class TEBD:
             for row in range(0,len(self.trotter_gates)):
                 keys = list(self.trotter_gates[row].keys())
                 for m in range(0,np.size(keys,axis=0)):
-                    # print(row,m)
                     applier = gate_application_method.factory(self.trotter_gates[row][keys[m]],self.psiVidal,self.D,self.phys_dim)
                     applier.apply()
                     error += applier.error
