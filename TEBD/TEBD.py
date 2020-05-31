@@ -12,6 +12,7 @@ from progressbar import ProgressBar
 import copy
 from trotter_gate_applicationVidal import *
 from copy import deepcopy
+from rw_functions import save_obj,load_obj
 
 class TEBD:
     def __init__(self,trotter_gates,psi_init,D):
@@ -25,14 +26,19 @@ class TEBD:
         self.psiVidal = vidalOpenMPS(self.psi)
         self.psiVidalInit = deepcopy(self.psiVidal)
 
-    def run(self,delta_t,t_max):
+    def run(self,delta_t,t_max,savEvolvedMPS=False,calcFid=False):
         print("Evolving with TEBD")
         self.t=np.arange(0,t_max+delta_t,delta_t)
-        self.f=np.zeros(np.size(self.t))
-        self.f[0] = 1
+
+        if calcFid is True:
+            self.f=np.zeros(np.size(self.t))
+            self.f[0] = 1
+        if savEvolvedMPS is True:
+            self.evolvedMPS = dict()
+            self.evolvedMPS[0] = self.psiVidalInit
+
         self.error = np.zeros(np.size(self.t))
         self.entropy = np.zeros(np.size(self.t))
-        self.distance_error = np.zeros(np.size(self.t))
 
         if self.psiVidal.length % 2 == 0:
             bipartiteCut = int(self.psiVidal.length/2-1)
@@ -62,9 +68,30 @@ class TEBD:
 
             #update truncation error + fidelity
             self.error[n] = self.error[n-1] + error
-            self.f[n] = np.abs(self.psiVidal.vdot(self.psiVidalInit))**2
+
+            if savEvolvedMPS is True:
+                self.evolvedMPS[n] = copy.deepcopy(self.psiVidal)
+            if calcFid is True:
+                self.f[n] = np.abs(self.psiVidal.vdot(self.psiVidalInit))**2
 
     def plot_fidelity(self):
         plt.plot(self.t,self.f)
         plt.xlabel(r"$t$")
         plt.ylabel(r"$\vert \langle \psi(0) \vert \psi(t) \rangle \vert^2$")
+
+    def eval_fidelity(self):
+        print("Fidelity: Contracting evolved states")
+        self.f = np.zeros(np.size(self.t))
+        pbar=ProgressBar()
+        for n in pbar(range(0,np.size(self.f,axis=0))):
+            self.f[n] = np.abs(self.evolvedMPS[n].vdot(self.psiVidalInit))**2
+
+    def eval_exp(self,mpo_object):
+        print("Expectation: Contracting MPO with evolved states")
+        exp = np.zeros(np.size(self.t),dtype=complex)
+        pbar=ProgressBar()
+        for n in pbar(range(0,np.size(self.t,axis=0))):
+            exp[n]  = self.evolvedMPS[n].exp(mpo_object)
+        return exp
+            
+            
