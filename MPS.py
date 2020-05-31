@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import numpy as np
 from rail_objects import *
 from progressbar import ProgressBar
@@ -7,6 +5,7 @@ from svd_operations import *
 from combine_rail_objects import *
 from Tensor_Train import *
 import copy
+trunc_cutoff = 1e-8
 
 class mps:
     def uniform(length,A,V=None,W=None):
@@ -278,7 +277,7 @@ class vidalOpenMPS:
         #check for singulars < 1e-7, truncate further, for numerical stability
         cut = None
         for m in range(0,np.size(S,axis=0)):
-            if np.abs(S[m])<1e-8:
+            if np.abs(S[m])<trunc_cutoff:
                 cut = m
                 break
         if cut is not None:
@@ -298,7 +297,7 @@ class vidalOpenMPS:
             #check for singulars < 1e-7, truncate further, for numerical stability
             cut = None
             for m in range(0,np.size(S,axis=0)):
-                if np.abs(S[m])<1e-8:
+                if np.abs(S[m])<trunc_cutoff:
                     cut = m
                     break
             if cut is not None:
@@ -322,7 +321,7 @@ class vidalOpenMPS:
         #check for singulars < 1e-7, truncate further, for numerical stability
         cut = None
         for m in range(0,np.size(S,axis=0)):
-            if np.abs(S[m])<1e-8:
+            if np.abs(S[m])<trunc_cutoff:
                 cut = m
                 break
         if cut is not None:
@@ -358,3 +357,23 @@ class vidalOpenMPS:
         L = np.einsum('ab,ia->ib',L,self.node[self.length-1])
         scalar = np.einsum('ib,ib',L,np.conj(B.node[self.length-1]))
         return scalar
+
+    def exp(self,mpo_object):
+        L = np.einsum('ia,ijb->jab',self.node[0],mpo_object.node[0].tensor)
+        L = np.einsum('jab,jc->abc',L,np.conj(self.node[0]))
+        L = np.einsum('abc,au->ubc',L,np.diag(self.singulars[0]))
+        L = np.einsum('ubc,cv->ubv',L,np.diag(self.singulars[0]))
+
+        for n in range(1,self.length-1):
+            M = np.einsum('iau,ijbn->jaubn',self.node[n],mpo_object.node[n].tensor)
+            M = np.einsum('abc,jaubn->jcun',L,M)
+            L = np.einsum('jcun,jcm->unm',M,np.conj(self.node[n]))
+            L = np.einsum('abc,au->ubc',L,np.diag(self.singulars[n]))
+            L = np.einsum('ubc,cv->ubv',L,np.diag(self.singulars[n]))
+
+        M = np.einsum('ia,ijb->jab',self.node[self.length-1],mpo_object.node[self.length-1].tensor)
+        M = np.einsum('abc,jab->jc',L,M)
+        scalar = np.einsum('jc,jc',M,np.conj(self.node[self.length-1]))
+        return scalar
+
+            
