@@ -120,3 +120,49 @@ class common_mpo:
         else:
             H = mpo.uniform(length,Q,V,W)
         return H
+
+    def zz(length,boundary):
+        Z=np.array([[-1,0],[0,1]])
+        I=np.array([[1,0],[0,1]])
+
+        Q=np.zeros(np.array((3,3,2,2)))
+        Q[0,0] = I
+        Q[1,0] = Z
+
+        Q[2,1] = Z
+        Q[2,2] = I
+
+        V=np.zeros(np.array((3,2,2)))
+        V[1] = Z
+        V[2] = I
+        W=np.zeros(np.array((3,2,2)))
+        W[0] = I
+        W[1] = Z
+
+        if boundary == "periodic":
+            H = mpo.uniform(length,Q)
+        else:
+            H = mpo.uniform(length,Q,V,W)
+        return H
+
+    def z(length,boundary):
+        Z=np.array([[-1,0],[0,1]])
+        I=np.array([[1,0],[0,1]])
+
+        Q=np.zeros(np.array((2,2,2,2)))
+        Q[0,0] = I
+        Q[1,0] = Z
+        Q[1,1] = I
+
+        V=np.zeros(np.array((2,2,2)))
+        V[0] = Z
+        V[1] = I
+        W=np.zeros(np.array((2,2,2)))
+        W[0] = I
+        W[1] = Z
+
+        if boundary == "periodic":
+            H = mpo.uniform(length,Q)
+        else:
+            H = mpo.uniform(length,Q,V,W)
+        return H
