@@ -76,7 +76,7 @@ class common_trotters:
         couplings = np.power(s*(s+1)-m*(m+1),0.5)
         P = np.zeros((phys_dim,phys_dim))
         P[0,0] = 1
-        X = 2*(np.diag(couplings,1) + np.diag(couplings,-1))
+        X = (2*(np.diag(couplings,1) + np.diag(couplings,-1)))/2
         # P = np.array([[1,0],[0,0]])
         # X = np.array([[0,1],[1,0]])
         H_XP = np.kron(X,P)
