@@ -90,7 +90,6 @@ class mpo:
         if V is None and W is None: return periodic_MPO(length,Q)
         else: return open_MPO(length,Q,V,W)
             
-
     def random(length,on_site_dim,bond_dim,boundary=None):
         O = np.random.uniform(-1,1,np.array((on_site_dim,on_site_dim,bond_dim,bond_dim)))
         V = np.random.uniform(-1,1,np.array((on_site_dim,on_site_dim,bond_dim)))
