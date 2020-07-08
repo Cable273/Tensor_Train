@@ -28,34 +28,29 @@ rc('font',**{'family':'sans-serif','sans-serif':['Computer Modern'],'size':26})
 rc('text', usetex=True)
 # matplotlib.rcParams['figure.dpi'] = 400
 
-N=6
+N=10
 phys_dim = 2
 delta_t = 0.01
-t_max = 10
+t_max = 20
+d=6
 
-# H = common_mpo.PXP(N,"open")
-# H = common_mpo.Heis(N,1,"open")
-H = common_mpo.XX(N,"open")
+H = common_mpo.PXP(N,"open")
 
-#initial state
-# Neel state (init state)
-d=4
-I = np.eye(d)
+#initial state [must be padded to bond dimension - d comes from initial state not algorithm unlike TEBD!!]
 A = np.zeros([phys_dim,d,d])
-A[0] = I
-# A[0,0,0] = 1
 B=np.zeros([phys_dim,d,d])
-B[phys_dim-1] = I
-# B[phys_dim-1,0,0] = 1
-
 Vr=np.zeros([phys_dim,d])
-Vr[0]=  np.zeros(np.size(I,axis=0))
-Vr[0][0] = 1
-
 Vl=np.zeros([phys_dim,d])
-Vl[phys_dim-1] = np.zeros(np.size(I,axis=0))
-Vl[phys_dim-1][0] = 1
 
+LR = np.ones(d)
+LR = LR / np.power(np.vdot(LR,LR),0.5)
+
+A[phys_dim-1] = np.eye(d)
+B[0] = np.eye(d)
+Vl[0] = LR
+Vr[phys_dim-1] = LR
+
+# Neel state (init state)
 psi = open_MPS(N)
 psi.set_entry(0,Vl,"right")
 for n in range(1,N-2,2):
@@ -63,19 +58,7 @@ for n in range(1,N-2,2):
 for n in range(2,N-1,2):
     psi.set_entry(n,B,"both")
 psi.set_entry(N-1,Vr,"left")
-print(np.abs(psi.dot(psi)))
 
-# system = unlocking_System([0,1],"open",2,N)
-# system.gen_basis()
-# wf = np.zeros(system.dim,dtype=complex)
-# for n in range(0,np.size(system.basis_refs,axis=0)):
-    # bits = system.basis[n]
-    # coef = psi.node[0].tensor[bits[0]]
-    # for m in range(1,np.size(bits,axis=0)):
-        # coef = np.dot(coef,psi.node[m].tensor[bits[m]])
-    # wf[n] = coef
-# from Diagnostics import print_wf
-# print_wf(wf,system,1e-2)
 
 from integrators import expiH
 from TDVP import TDVP
@@ -83,13 +66,11 @@ tdvp = TDVP(H,psi)
 # tdvp.run(delta_t,t_max,integrator = expiH.krylov)
 # tdvp.run(delta_t,t_max,integrator = expiH.euler)
 tdvp.run(delta_t,t_max,integrator = expiH.rungeKutta4)
+# tdvp.run(delta_t,t_max,integrator = expiH.exact_exp)
 
-from integrators import *
 plt.plot(tdvp.t,tdvp.f)
 plt.ylabel(r"$\vert \langle \psi(0) \vert \psi(t) \rangle \vert^2$")
 plt.xlabel(r"$t$")
-plt.title(r"TDVP Time Evolution, $N=$"+str(N))
+plt.title(r"TDVP Time Evolution, $N$="+str(N))
 plt.show()
-# plt.plot(tdvp.t,tdvp.energy)
-# plt.show()
 
