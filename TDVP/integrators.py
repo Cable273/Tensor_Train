@@ -58,3 +58,7 @@ class expiH:
         k3 = np.dot(U,psi+1/2*k2)
         k4 = np.dot(U,psi+k3)
         return psi + 1/6*(k1+2*k2+2*k3+k4)
+
+    def exact_exp(H,psi,t):
+        U = sp.linalg.expm(-1j*H*t)
+        return np.dot(U,psi)
