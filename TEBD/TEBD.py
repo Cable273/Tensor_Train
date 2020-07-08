@@ -93,5 +93,3 @@ class TEBD:
         for n in pbar(range(0,np.size(self.t,axis=0))):
             exp[n]  = self.evolvedMPS[n].exp(mpo_object)
         return exp
-            
-            
