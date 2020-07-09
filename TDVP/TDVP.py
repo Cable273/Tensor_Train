@@ -21,7 +21,7 @@ class TDVP:
     def __init__(self,H_mpo,psi):
         self.psi_init = psi
 
-        # self.psi_init.right_normalize()
+        self.psi_init.right_normalize()
 
         self.H = H_mpo
         self.phys_dim = np.shape(self.psi_init.node[0].tensor)[0]
@@ -197,28 +197,61 @@ class TDVP:
             self.psiConj.node[n-1].tensor = np.conj(self.psi.node[n-1].tensor)
 
 
-    def run(self,delta_t,t_max,integrator):
+    def run(self,delta_t,t_max,integrator,savEvolvedMPS=False,calcFid=False):
         print("Evolving with TDVP")
         self.t=np.arange(0,t_max+delta_t,delta_t)
-        self.f=np.zeros(np.size(self.t))
 
-        self.f[0] = 1
-        self.norm = np.zeros(np.size(self.t))
-        self.norm[0] = 1
+        if calcFid is True:
+            self.f=np.zeros(np.size(self.t))
+            self.f[0] = 1
+        if savEvolvedMPS is True:
+            self.evolvedMPS = dict()
+            self.evolvedMPS[0] = self.psi_init
+
         pbar=ProgressBar()
         for n in pbar(range(1,np.size(self.t,axis=0))):
             self.rightSweep(delta_t/2,integrator)
             self.leftSweep(delta_t/2,integrator)
 
-            temp = np.einsum('ia,ib->ab',self.psi.node[0].tensor,np.conj(self.psi.node[0].tensor))
-            temp = np.einsum('ab,ab',temp,self.overlapR[1].tensor)
-            self.norm[n] = np.abs(temp)
+            if savEvolvedMPS is True:
+                self.evolvedMPS[n] = copy.deepcopy(self.psi)
+            if calcFid is True:
+                # do fidelity overlap by hand (quicker..)
+                L_temp = np.einsum('ia,ib->ab',self.psi_init.node[0].tensor,np.conj(self.psi.node[0].tensor))
+                for m in range(1,self.length-1):
+                    L_temp = np.einsum('ab,iac->ibc',L_temp,self.psi_init.node[m].tensor)
+                    L_temp = np.einsum('ibc,ibd->cd',L_temp,np.conj(self.psi.node[m].tensor))
+                L_temp = np.einsum('ab,ia->ib',L_temp,self.psi_init.node[self.length-1].tensor)
+                scalar = np.abs(np.einsum('ib,ib',L_temp,np.conj(self.psi.node[self.length-1].tensor)))**2
+                self.f[n] = scalar
 
-            #do fidelity overlap by hand
-            L_temp = np.einsum('ia,ib->ab',self.psi_init.node[0].tensor,np.conj(self.psi.node[0].tensor))
+    def eval_fidelity(self):
+        print("Fidelity: Contracting evolved states")
+        self.f = np.zeros(np.size(self.t))
+        pbar=ProgressBar()
+        for n in pbar(range(0,np.size(self.f,axis=0))):
+            L_temp = np.einsum('ia,ib->ab',self.psi_init.node[0].tensor,np.conj(self.evolvedMPS[n].node[0].tensor))
             for m in range(1,self.length-1):
                 L_temp = np.einsum('ab,iac->ibc',L_temp,self.psi_init.node[m].tensor)
-                L_temp = np.einsum('ibc,ibd->cd',L_temp,np.conj(self.psi.node[m].tensor))
+                L_temp = np.einsum('ibc,ibd->cd',L_temp,np.conj(self.evolvedMPS[n].node[m].tensor))
             L_temp = np.einsum('ab,ia->ib',L_temp,self.psi_init.node[self.length-1].tensor)
-            scalar = np.einsum('ib,ib',L_temp,np.conj(self.psi.node[self.length-1].tensor))
-            self.f[n] = np.abs(scalar)**2
+            scalar = np.abs(np.einsum('ib,ib',L_temp,np.conj(self.evolvedMPS[n].node[self.length-1].tensor)))**2
+            self.f[n] = scalar
+
+    def eval_exp(self,mpo_object):
+        print("Expectation: Contracting MPO with evolved states")
+        exp = np.zeros(np.size(self.t),dtype=complex)
+        pbar=ProgressBar()
+        for n in pbar(range(0,np.size(self.t,axis=0))):
+            L_temp = np.einsum('ia,ijb->jab',self.evolvedMPS[n].node[0].tensor,mpo_object.node[0].tensor)
+            L_temp = np.einsum('jab,jc->abc',L_temp,np.conj(self.evolvedMPS[n].node[0].tensor))
+            for m in range(1,self.length-1):
+                L_temp = np.einsum('abc,iad->ibcd',L_temp,self.evolvedMPS[n].node[m].tensor)
+                L_temp = np.einsum('ibcd,ijbe->jcde',L_temp,mpo_object.node[m].tensor)
+                L_temp = np.einsum('jcde,jcf->def',L_temp,np.conj(self.evolvedMPS[n].node[m].tensor))
+            m = self.length-1
+            L_temp = np.einsum('abc,ia->ibc',L_temp,self.evolvedMPS[n].node[m].tensor)
+            L_temp = np.einsum('ibc,ijb->jc',L_temp,mpo_object.node[m].tensor)
+            scalar = np.einsum('jc,jc',L_temp,np.conj(self.evolvedMPS[n].node[m].tensor))
+            exp[n] = scalar
+        return exp
