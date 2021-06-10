@@ -255,3 +255,10 @@ class TDVP:
             scalar = np.einsum('jc,jc',L_temp,np.conj(self.evolvedMPS[n].node[m].tensor))
             exp[n] = scalar
         return exp
+
+    def eval_var(self):
+        self.var = np.zeros(np.size(self.t))
+        pbar=ProgressBar()
+        for n in pbar(range(0,np.size(self.t,axis=0))):
+            H2 = self.H.dot(self.H)
+            self.var[n] = H2.exp(self.evolvedMPS[n])-(self.H.exp(self.evolvedMPS[n]))**2
