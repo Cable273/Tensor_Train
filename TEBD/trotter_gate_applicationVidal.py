@@ -38,6 +38,14 @@ class gate_application_method:
         if type(gate) is intGate:
             gate_length = gate.length
             loc = gate.loc
+            if gate_length == 1:
+                if loc == 0:
+                    return size1GateAppliedLeft(gate,psiVidal,D,phys_dim)
+                elif loc == psiVidal.length-1:
+                    return size1GateAppliedRight(gate,psiVidal,D,phys_dim)
+                else:
+                    return size1GateAppliedMiddle(gate,psiVidal,D,phys_dim)
+
             if gate_length == 2:
                 if loc == 0:
                     return size2GateAppliedLeft(gate,psiVidal,D,phys_dim)
@@ -45,6 +53,7 @@ class gate_application_method:
                     return size2GateAppliedRight(gate,psiVidal,D,phys_dim)
                 else:
                     return size2GateAppliedMiddle(gate,psiVidal,D,phys_dim)
+
             if gate_length == 3:
                 if loc == 0:
                     return size3GateAppliedLeft(gate,psiVidal,D,phys_dim)
@@ -207,6 +216,44 @@ class applySwapGateRight(gate_application_method):
         self.psiVidal.singulars[self.loc] = S / np.power(np.vdot(S,S),0.5)
         self.psiVidal.node[self.loc+1] = gammaR
 
+class size1GateAppliedLeft(gate_application_method):
+    def __init__(self,gate,psiVidal,D,phys_dim):
+        self.gate = gate.tensor
+        self.psiVidal = psiVidal
+        self.loc = gate.loc
+        self.D = D
+        self.phys_dim = phys_dim
+        self.error = 0
+
+    def apply(self,truncate = True):
+        newNode = np.einsum('ab,ac->cb',self.psiVidal.node[self.loc],self.gate)
+        self.psiVidal.node[self.loc] = newNode
+
+class size1GateAppliedMiddle(gate_application_method):
+    def __init__(self,gate,psiVidal,D,phys_dim):
+        self.gate = gate.tensor
+        self.psiVidal = psiVidal
+        self.loc = gate.loc
+        self.D = D
+        self.phys_dim = phys_dim
+        self.error = 0
+
+    def apply(self,truncate = True):
+        newNode = np.einsum('abc,ad->dbc',self.psiVidal.node[self.loc],self.gate)
+        self.psiVidal.node[self.loc] = newNode
+
+class size1GateAppliedRight(gate_application_method):
+    def __init__(self,gate,psiVidal,D,phys_dim):
+        self.gate = gate.tensor
+        self.psiVidal = psiVidal
+        self.loc = gate.loc
+        self.D = D
+        self.phys_dim = phys_dim
+        self.error = 0
+
+    def apply(self,truncate = True):
+        newNode = np.einsum('ab,ac->cb',self.psiVidal.node[self.loc],self.gate)
+        self.psiVidal.node[self.loc] = newNode
 
 class size2GateAppliedLeft(gate_application_method):
     def __init__(self,gate,psiVidal,D,phys_dim):
