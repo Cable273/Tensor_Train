@@ -72,7 +72,8 @@ class dmrg:
         pbar=ProgressBar(widgets=['E0='+str(self.energy)+',Var='+str(self.variance)+':',Bar(marker=RotatingMarker())])
         for n in pbar(range(1,self.length-1)):
             site_H_mpo = combine_mpoNode_clayers.factory(self.network.mid_row.node[n],self.L[n-1],self.R[n+1])
-            e,u = sp.sparse.linalg.eigsh(site_H_mpo,k=1)
+            # e,u = sp.sparse.linalg.eigsh(site_H_mpo,k=1)
+            e,u = np.linalg.eigh(site_H_mpo)
             M = u[:,0]
             shape_A=np.shape(self.network.top_row.node[n].tensor)
             new_phys_dim = int(np.size(M)/(shape_A[1]*shape_A[2]))
@@ -119,7 +120,8 @@ class dmrg:
         pbar=ProgressBar(widgets=['E0='+str(self.energy)+',Var='+str(self.variance)+':',ReverseBar(marker=RotatingMarker())])
         for n in pbar(range(self.length-2,0,-1)):
             site_H_mpo = combine_mpoNode_clayers.factory(self.network.mid_row.node[n],self.L[n-1],self.R[n+1])
-            e,u = sp.sparse.linalg.eigsh(site_H_mpo,k=1)
+            # e,u = sp.sparse.linalg.eigsh(site_H_mpo,k=1)
+            e,u = np.linalg.eigh(site_H_mpo)
             M = u[:,0]
             shape_A=np.shape(self.network.top_row.node[n].tensor)
             new_phys_dim = int(np.size(M)/(shape_A[1]*shape_A[2]))
@@ -297,9 +299,11 @@ class idmrg:
         H_opt = H_opt.reshape(shape[0]*shape[1]*shape[2]*shape[3],shape[4]*shape[5]*shape[6]*shape[7])
         # e,u = sp.sparse.linalg.eigsh(H_opt)
         if self.v0 is None:
-            e,u = sp.sparse.linalg.eigsh(H_opt,k=1)
+            # e,u = sp.sparse.linalg.eigsh(H_opt,k=1)
+            e,u = np.linalg.eigh(H_opt)
         else:
-            e,u = sp.sparse.linalg.eigsh(H_opt,v0=self.v0,k=1)
+            # e,u = sp.sparse.linalg.eigsh(H_opt,v0=self.v0,k=1)
+            e,u= np.linalg.eigh(H_opt)
         M = u[:,0]
         if np.max(self.A_shape) == self.D:
             self.v0 = M
