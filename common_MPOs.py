@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 from MPS import *
+def dsum(a,b):
+    M = np.zeros(())
+
+
 class common_mpo:
     def  Ising(length,J,h,boundary):
         #J*ZZ-hX
@@ -25,6 +29,37 @@ class common_mpo:
         W[0] = I
         W[1] = Z
         W[2] = -h*X
+
+        if boundary == "periodic":
+            H = mpo.uniform(length,Q)
+        else:
+            H = mpo.uniform(length,Q,V,W)
+        return H
+
+    def  Ising_longi(length,J,hx,hz,boundary):
+        #J*ZZ+ hx X +hz Z
+        Z=np.array([[-1,0],[0,1]])
+        I=np.array([[1,0],[0,1]])
+        X=np.array([[0,1],[1,0]])
+
+        Q=np.zeros(np.array((3,3,2,2)))
+        Q[0,0] = I
+        Q[1,0] = Z
+        Q[2,0] = hx*X+hz*Z
+
+        Q[2,1] = J*Z
+        Q[2,2] = I
+
+        V=np.zeros(np.array((3,2,2)))
+        V[0] = hx*X+hz*Z
+        V[1] = J*Z
+        V[2] = I
+
+        W=np.zeros(np.array((3,2,2)))
+        W[0] = I
+        W[1] = Z
+        W[2] = hx*X+hz*Z
+
 
         if boundary == "periodic":
             H = mpo.uniform(length,Q)
