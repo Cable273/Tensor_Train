@@ -70,6 +70,36 @@ def twoSite_uniformTrotter(H,N,uc_size,phys_dim,delta_t,trotter_order=1):
         return trotter_gates
 
 class common_trotters:
+    def Ising_spinHalf(N,J,hx,hz,delta_t):
+        phys_dim = 2
+        Z = np.array([[-1,0],[0,1]])
+        X = np.array([[0,1],[1,0]])
+        I = np.eye(2)
+
+        H_main = J*np.kron(Z,Z) + hx/2*(np.kron(I,X)+np.kron(X,I)) + hz/2*(np.kron(I,Z)+np.kron(Z,I))
+        H_boundary = hx/2*X + hz/2*Z
+
+        # H_main = J*np.kron(Z,Z) + hx*np.kron(I,X) + hz*np.kron(Z,I)
+        # H_boundary = hx*X + hz*Z
+
+        H_main_trotter = np.reshape(sp.linalg.expm(-1j*H_main*delta_t), (phys_dim,phys_dim,phys_dim,phys_dim))
+        boundary_trotter = np.reshape(sp.linalg.expm(-1j*H_boundary*delta_t),(phys_dim,phys_dim))
+
+        trotter_gates = dict()
+        trotter_gates[0] = dict()
+        trotter_gates[1] = dict()
+
+        if N % 2 == 0:
+            for n in range(0,N-1,2):
+                trotter_gates[0][n] = intGate(H_main_trotter,n,2)
+
+            trotter_gates[1][0] = intGate(boundary_trotter,0,1)
+            for n in range(1,N-2,2):
+                trotter_gates[1][n] = intGate(H_main_trotter,n,2)
+            trotter_gates[1][N-1] = intGate(boundary_trotter,N-1,1)
+        return trotter_gates
+
+
     def PXP(N,phys_dim,delta_t,trotter_order=1):
         s = (phys_dim-1)/2
         m = np.arange(-s,s)
