@@ -102,7 +102,8 @@ class applySwapGateLeft(gate_application_method):
 
         dims = np.shape(psi_new)
         psi_new = psi_new.reshape((dims[0],dims[1]*dims[2]))
-        U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        # U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        U,S,Vh = sp.linalg.svd(psi_new,full_matrices=False)
         if truncate is True:
             U = U[:,:self.D]
             self.error += np.sum(S[self.D:]**2)
@@ -145,7 +146,8 @@ class applySwapGateMiddle(gate_application_method):
 
         dims = np.shape(psi_new)
         psi_new = psi_new.reshape((dims[0]*dims[1],dims[2]*dims[3]))
-        U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        # U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        U,S,Vh = sp.linalg.svd(psi_new,full_matrices=False)
         if truncate is True:
             U = U[:,:self.D]
             self.error += np.sum(S[self.D:]**2)
@@ -189,7 +191,8 @@ class applySwapGateRight(gate_application_method):
 
         dims = np.shape(psi_new)
         psi_new = psi_new.reshape((dims[0]*dims[1],dims[2]))
-        U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        # U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        U,S,Vh = sp.linalg.svd(psi_new,full_matrices=False)
         if truncate is True:
             U = U[:,:self.D]
             self.error += np.sum(S[self.D:]**2)
@@ -271,7 +274,8 @@ class size2GateAppliedLeft(gate_application_method):
 
         dims = np.shape(psi_new)
         psi_new = psi_new.reshape((dims[0],dims[1]*dims[2]))
-        U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        # U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        U,S,Vh = sp.linalg.svd(psi_new,full_matrices=False)
         U,S,Vh,self.error = trunctate(U,S,Vh,self.D,tol,self.error)
 
         gamma0 = U
@@ -300,7 +304,8 @@ class size2GateAppliedMiddle(gate_application_method):
 
         dims = np.shape(psi_new)
         psi_new = psi_new.reshape((dims[0]*dims[1],dims[2]*dims[3]))
-        U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        # U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        U,S,Vh = sp.linalg.svd(psi_new,full_matrices=False)
         U,S,Vh,self.error = trunctate(U,S,Vh,self.D,tol,self.error)
 
         A = U.reshape((dims[0],dims[1],np.size(S)))
@@ -330,7 +335,8 @@ class size2GateAppliedRight(gate_application_method):
 
         dims = np.shape(psi_new)
         psi_new = psi_new.reshape((dims[0]*dims[1],dims[2]))
-        U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        # U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        U,S,Vh = sp.linalg.svd(psi_new,full_matrices=False)
         U,S,Vh,self.error = trunctate(U,S,Vh,self.D,tol,self.error)
 
         A = U.reshape((dims[0],dims[1],np.size(S)))
@@ -361,7 +367,8 @@ class size3GateAppliedLeft(gate_application_method):
 
         dims = np.shape(psi_new)
         psi_new = psi_new.reshape((dims[0],dims[1]*dims[2]*dims[3]))
-        U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        # U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        U,S,Vh = sp.linalg.svd(psi_new,full_matrices=False)
         U,S,Vh,self.error = trunctate(U,S,Vh,self.D,tol,self.error)
 
         gamma0 = U
@@ -371,7 +378,8 @@ class size3GateAppliedLeft(gate_application_method):
         dims2 = np.shape(M)
         M = M.reshape((dims2[0]*dims2[1],dims2[2]*dims2[3]))
 
-        U,S2,Vh = np.linalg.svd(M,full_matrices = False)
+        # U,S2,Vh = np.linalg.svd(M,full_matrices = False)
+        U,S2,Vh = sp.linalg.svd(M,full_matrices = False)
         U,S2,Vh,self.error = trunctate(U,S2,Vh,self.D,tol,self.error)
 
         A1 = U.reshape((dims2[0],dims2[1],np.size(S2)))
@@ -408,7 +416,8 @@ class size3GateAppliedMiddle(gate_application_method):
 
         dims = np.shape(psi_new)
         psi_new = psi_new.reshape((dims[0]*dims[1],dims[2]*dims[3]*dims[4]))
-        U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        # U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        U,S,Vh = sp.linalg.svd(psi_new,full_matrices=False)
         U,S,Vh,self.error = trunctate(U,S,Vh,self.D,tol,self.error)
 
         A0 = U.reshape((dims[0],dims[1],np.size(S)))
@@ -418,7 +427,8 @@ class size3GateAppliedMiddle(gate_application_method):
         dims2 = np.shape(M)
         M = M.reshape((dims2[0]*dims2[1],dims2[2]*dims2[3]))
 
-        U,S2,Vh = np.linalg.svd(M,full_matrices = False)
+        # U,S2,Vh = np.linalg.svd(M,full_matrices = False)
+        U,S2,Vh = sp.linalg.svd(M,full_matrices = False)
         U,S2,Vh,self.error = trunctate(U,S2,Vh,self.D,tol,self.error)
 
         A1 = U.reshape((dims2[0],dims2[1],np.size(S2)))
@@ -457,7 +467,8 @@ class size3GateAppliedRight(gate_application_method):
 
         dims = np.shape(psi_new)
         psi_new = psi_new.reshape((dims[0]*dims[1],dims[2]*dims[3]))
-        U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        # U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        U,S,Vh = sp.linalg.svd(psi_new,full_matrices=False)
         U,S,Vh,self.error = trunctate(U,S,Vh,self.D,tol,self.error)
 
         A0 = U.reshape((dims[0],dims[1],np.size(S)))
@@ -467,7 +478,8 @@ class size3GateAppliedRight(gate_application_method):
         dims2 = np.shape(M)
         M = M.reshape((dims2[0]*dims2[1],dims2[2]))
 
-        U,S2,Vh = np.linalg.svd(M,full_matrices=False)
+        # U,S2,Vh = np.linalg.svd(M,full_matrices=False)
+        U,S2,Vh = sp.linalg.svd(M,full_matrices=False)
         U,S2,Vh,self.error = trunctate(U,S2,Vh,self.D,tol,self.error)
 
         A1 = U.reshape((dims2[0],dims2[1],np.size(S2)))
@@ -506,7 +518,8 @@ class size4GateAppliedLeft(gate_application_method):
 
         dims = np.shape(psi_new)
         psi_new = psi_new.reshape((dims[0],dims[1]*dims[2]*dims[3]*dims[4]))
-        U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        # U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        U,S,Vh = sp.linalg.svd(psi_new,full_matrices=False)
         U,S,Vh,self.error = trunctate(U,S,Vh,self.D,tol,self.error)
 
         gamma0 = U
@@ -515,7 +528,8 @@ class size4GateAppliedLeft(gate_application_method):
         B0 = np.einsum('abcde->bacde',B0)
         B0 = B0.reshape((dims[1]*np.size(S),dims[2]*dims[3]*dims[4]))
 
-        U,S2,Vh = np.linalg.svd(B0,full_matrices = False)
+        # U,S2,Vh = np.linalg.svd(B0,full_matrices = False)
+        U,S2,Vh = sp.linalg.svd(B0,full_matrices = False)
         U,S2,Vh,self.error = trunctate(U,S2,Vh,self.D,tol,self.error)
 
         A1 = U.reshape((dims[1],np.size(S),np.size(S2)))
@@ -525,7 +539,8 @@ class size4GateAppliedLeft(gate_application_method):
         B1 = np.einsum('abcd->bacd',B1)
         B1 = B1.reshape((dims[2]*np.size(S2),dims[3]*dims[4]))
 
-        U,S3,Vh = np.linalg.svd(B1,full_matrices = False)
+        # U,S3,Vh = np.linalg.svd(B1,full_matrices = False)
+        U,S3,Vh = sp.linalg.svd(B1,full_matrices = False)
         U,S3,Vh,self.error = trunctate(U,S3,Vh,self.D,tol,self.error)
 
         A2 = U.reshape((dims[2],np.size(S2),np.size(S3)))
@@ -568,7 +583,8 @@ class size4GateAppliedRight(gate_application_method):
 
         dims = np.shape(psi_new)
         psi_new = psi_new.reshape((dims[0]*dims[1],dims[2]*dims[3]*dims[4]))
-        U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        # U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        U,S,Vh = sp.linalg.svd(psi_new,full_matrices=False)
         U,S,Vh,self.error = trunctate(U,S,Vh,self.D,tol,self.error)
 
         A0 = U.reshape((dims[0],dims[1],np.size(S)))
@@ -577,7 +593,8 @@ class size4GateAppliedRight(gate_application_method):
         B0 = np.einsum('abcd->bacd',B0)
         B0 = B0.reshape((dims[2]*np.size(S),dims[3]*dims[4]))
 
-        U,S2,Vh = np.linalg.svd(B0,full_matrices = False)
+        # U,S2,Vh = np.linalg.svd(B0,full_matrices = False)
+        U,S2,Vh = sp.linalg.svd(B0,full_matrices = False)
         U,S2,Vh,self.error = trunctate(U,S2,Vh,self.D,tol,self.error)
 
         A1 = U.reshape((dims[2],np.size(S),np.size(S2)))
@@ -587,7 +604,8 @@ class size4GateAppliedRight(gate_application_method):
         B1 = np.einsum('abc->bac',B1)
         B1 = B1.reshape((dims[3]*np.size(S2),dims[4]))
 
-        U,S3,Vh = np.linalg.svd(B1,full_matrices = False)
+        # U,S3,Vh = np.linalg.svd(B1,full_matrices = False)
+        U,S3,Vh = sp.linalg.svd(B1,full_matrices = False)
         U,S3,Vh,self.error = trunctate(U,S3,Vh,self.D,tol,self.error)
 
         A2 = U.reshape((dims[3],np.size(S2),np.size(S3)))
@@ -632,7 +650,8 @@ class size5GateAppliedRight(gate_application_method):
 
         dims = np.shape(psi_new)
         psi_new = psi_new.reshape((dims[0]*dims[1],dims[2]*dims[3]*dims[4]*dims[5]))
-        U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        # U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        U,S,Vh = sp.linalg.svd(psi_new,full_matrices=False)
         U,S,Vh,self.error = trunctate(U,S,Vh,self.D,tol,self.error)
 
         A0 = U.reshape((dims[0],dims[1],np.size(S)))
@@ -641,7 +660,8 @@ class size5GateAppliedRight(gate_application_method):
         B0 = np.einsum('abcde->bacde',B0)
         B0 = B0.reshape((dims[2]*np.size(S),dims[3]*dims[4]*dims[5]))
 
-        U,S2,Vh = np.linalg.svd(B0,full_matrices = False)
+        # U,S2,Vh = np.linalg.svd(B0,full_matrices = False)
+        U,S2,Vh = sp.linalg.svd(B0,full_matrices = False)
         U,S2,Vh,self.error = trunctate(U,S2,Vh,self.D,tol,self.error)
 
         A1 = U.reshape((dims[2],np.size(S),np.size(S2)))
@@ -650,7 +670,8 @@ class size5GateAppliedRight(gate_application_method):
         B1 = np.einsum('abcd->bacd',B1)
         B1 = B1.reshape((dims[3]*np.size(S2),dims[4]*dims[5]))
 
-        U,S3,Vh = np.linalg.svd(B1,full_matrices = False)
+        # U,S3,Vh = np.linalg.svd(B1,full_matrices = False)
+        U,S3,Vh = sp.linalg.svd(B1,full_matrices = False)
         U,S3,Vh,self.error = trunctate(U,S3,Vh,self.D,tol,self.error)
 
         A2 = U.reshape((dims[3],np.size(S2),np.size(S3)))
@@ -660,7 +681,8 @@ class size5GateAppliedRight(gate_application_method):
         B2 = np.einsum('abc->bac',B2)
         B2 = B2.reshape((dims[4]*np.size(S3),dims[5]))
 
-        U,S4,Vh = np.linalg.svd(B2,full_matrices = False)
+        # U,S4,Vh = np.linalg.svd(B2,full_matrices = False)
+        U,S4,Vh = sp.linalg.svd(B2,full_matrices = False)
         U,S4,Vh,self.error = trunctate(U,S4,Vh,self.D,tol,self.error)
 
         A3 = U.reshape((dims[4],np.size(S3),np.size(S4)))
@@ -708,7 +730,8 @@ class size5GateAppliedLeft(gate_application_method):
 
         dims = np.shape(psi_new)
         psi_new = psi_new.reshape((dims[0],dims[1]*dims[2]*dims[3]*dims[4]*dims[5]))
-        U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        # U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        U,S,Vh = sp.linalg.svd(psi_new,full_matrices=False)
         U,S,Vh,self.error = trunctate(U,S,Vh,self.D,tol,self.error)
 
         gamma0 = U
@@ -717,7 +740,8 @@ class size5GateAppliedLeft(gate_application_method):
         B0 = np.einsum('abcdef->bacdef',B0)
         B0 = B0.reshape((dims[1]*np.size(S),dims[2]*dims[3]*dims[4]*dims[5]))
 
-        U,S2,Vh = np.linalg.svd(B0,full_matrices = False)
+        # U,S2,Vh = np.linalg.svd(B0,full_matrices = False)
+        U,S2,Vh = sp.linalg.svd(B0,full_matrices = False)
         U,S2,Vh,self.error = trunctate(U,S2,Vh,self.D,tol,self.error)
 
         A1 = U.reshape((dims[1],np.size(S),np.size(S2)))
@@ -726,7 +750,8 @@ class size5GateAppliedLeft(gate_application_method):
         B1 = np.einsum('abcde->bacde',B1)
         B1 = B1.reshape((dims[2]*np.size(S2),dims[3]*dims[4]*dims[5]))
 
-        U,S3,Vh = np.linalg.svd(B1,full_matrices = False)
+        # U,S3,Vh = np.linalg.svd(B1,full_matrices = False)
+        U,S3,Vh = sp.linalg.svd(B1,full_matrices = False)
         U,S3,Vh,self.error = trunctate(U,S3,Vh,self.D,tol,self.error)
 
         A2 = U.reshape((dims[2],np.size(S2),np.size(S3)))
@@ -735,7 +760,8 @@ class size5GateAppliedLeft(gate_application_method):
         B2 = np.einsum('abcd->bacd',B2)
         B2 = B2.reshape((dims[3]*np.size(S3),dims[4]*dims[5]))
 
-        U,S4,Vh = np.linalg.svd(B2,full_matrices = False)
+        # U,S4,Vh = np.linalg.svd(B2,full_matrices = False)
+        U,S4,Vh = sp.linalg.svd(B2,full_matrices = False)
         U,S4,Vh,self.error = trunctate(U,S4,Vh,self.D,tol,self.error)
 
         A3 = U.reshape((dims[4],np.size(S3),np.size(S4)))
@@ -785,7 +811,8 @@ class size5GateAppliedMiddle(gate_application_method):
 
         dims = np.shape(psi_new)
         psi_new = psi_new.reshape((dims[0]*dims[1],dims[2]*dims[3]*dims[4]*dims[5]*dims[6]))
-        U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        # U,S,Vh = np.linalg.svd(psi_new,full_matrices=False)
+        U,S,Vh = sp.linalg.svd(psi_new,full_matrices=False)
         U,S,Vh,self.error = trunctate(U,S,Vh,self.D,tol,self.error)
 
         A0 = U.reshape((dims[0],dims[1],np.size(S)))
@@ -794,7 +821,8 @@ class size5GateAppliedMiddle(gate_application_method):
         B0 = np.einsum('abcdef->bacdef',B0)
         B0 = B0.reshape((dims[2]*np.size(S),dims[3]*dims[4]*dims[5]*dims[6]))
 
-        U,S2,Vh = np.linalg.svd(B0,full_matrices = False)
+        # U,S2,Vh = np.linalg.svd(B0,full_matrices = False)
+        U,S2,Vh = sp.linalg.svd(B0,full_matrices = False)
         U,S2,Vh,self.error = trunctate(U,S2,Vh,self.D,tol,self.error)
 
         A1 = U.reshape((dims[2],np.size(S),np.size(S2)))
@@ -803,7 +831,8 @@ class size5GateAppliedMiddle(gate_application_method):
         B1 = np.einsum('abcde->bacde',B1)
         B1 = B1.reshape((dims[3]*np.size(S2),dims[4]*dims[5]*dims[6]))
 
-        U,S3,Vh = np.linalg.svd(B1,full_matrices = False)
+        # U,S3,Vh = np.linalg.svd(B1,full_matrices = False)
+        U,S3,Vh = sp.linalg.svd(B1,full_matrices = False)
         U,S3,Vh,self.error = trunctate(U,S3,Vh,self.D,tol,self.error)
 
         A2 = U.reshape((dims[3],np.size(S2),np.size(S3)))
@@ -812,7 +841,8 @@ class size5GateAppliedMiddle(gate_application_method):
         B2 = np.einsum('abcd->bacd',B2)
         B2 = B2.reshape((dims[4]*np.size(S3),dims[5]*dims[6]))
 
-        U,S4,Vh = np.linalg.svd(B2,full_matrices = False)
+        # U,S4,Vh = np.linalg.svd(B2,full_matrices = False)
+        U,S4,Vh = sp.linalg.svd(B2,full_matrices = False)
         U,S4,Vh,self.error = trunctate(U,S4,Vh,self.D,tol,self.error)
 
         A3 = U.reshape((dims[4],np.size(S3),np.size(S4)))
