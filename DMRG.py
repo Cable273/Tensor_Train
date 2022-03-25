@@ -152,7 +152,8 @@ class dmrg:
         self.variance = combine_clayer_layer.scalar(layer(self.var_network,0),self.var_R[1])-self.energy**2
         self.variance_vals = np.append(self.variance_vals,self.variance)
 
-    def run(self,max_sweeps=100,var_tol=1e-5,var_diff_tol=1e-8,convergence=1e-5):
+    def run(self,max_sweeps=100,var_tol=1e-15,var_diff_tol=1e-18,convergence=1e-15):
+        max_sweeps = 100
         self.right_sweep()
         converged = 0
         sweeps=1
