@@ -29,6 +29,7 @@ class TEBD:
     def run(self,delta_t,t_max,savEvolvedMPS=False,calcFid=False):
         print("Evolving with TEBD")
         self.t=np.arange(0,t_max+delta_t,delta_t)
+        self.delta_t = delta_t
 
         if calcFid is True:
             self.f=np.zeros(np.size(self.t))
